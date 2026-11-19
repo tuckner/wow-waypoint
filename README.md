@@ -84,12 +84,10 @@ Everything about you (characters, journal, plans, dashboard) is saved in the not
 
 ---
 
-## 🛡️ Come play with us
-
-We're recruiting! **&lt;Root Access&gt;** is a Horde guild on **US PvP** in WoW Forever. If you'd like company for leveling, dungeons and raids, come team up with us. Whisper any member in game to ask for an invite. 🤝
-
----
-
-## 🧑‍💻 Want to help?
+## 🤝 Contributing
 
 Bug reports and pull requests are welcome. If something about the game is wrong (a spell level, a milestone, a dungeon tip), the facts live in plain files under `data/` and are easy to fix. Tests run with `python3 -m unittest discover -s tests`.
+
+### 🛡️ Team up in game
+
+We're recruiting! **&lt;Root Access&gt;** is a Horde guild on **US PvP** in WoW Forever. If you'd like company for leveling, dungeons and raids, come play with us. Whisper any member in game to ask for an invite.
