@@ -32,7 +32,7 @@ argument-hint: "[topic: setup | tracking | log | milestones | instance | macro |
 - `/instance <name>` (e.g. `/instance sfk`, `/instance mc`): a briefing for *your* class, level and role. It covers what you dispel and of which type, what you interrupt and with which spell, what you can CC, where to stand, raid assignments, attunements, resist gear, consumables your professions make, and loot for your spec. If it has no notes for that instance, or they're old, it researches them first and saves them for next time.
 
 **While questing**
-- `/macro`: in-game macros for the quests you're on. Press one to target the nearest live quest mob, rare or NPC. No scripts, so the game never asks you to allow them. Name the mobs, or say `/macro current` to build them from what you've been doing. It can't find ground objects like crates or herbs.
+- `/macro`: in-game macros for your character, such as targeting a quest mob, rare or NPC (`/macro current` uses the quests you've mentioned), mouseover heals, form plus opener, trinkets and party shortcuts. They use only spells you have at your level and plain slash commands, so the game never asks you to allow scripts.
 
 **Planning and looking back**
 - `/plan`: next session's to-do list, a leveling route, gear targets for your weakest slots, and profession and training goals, shaped by your playstyle and time budget.
