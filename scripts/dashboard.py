@@ -1024,47 +1024,13 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
 """
 
 
-# ---------- card scenes: original art (CSS gradients + small inline SVG), inspired by places in the game ----------
+# ---------- card backdrops: the class glow, plus photos from photo_scenes() ----------
 
-def _svg(body, vb="0 0 200 280"):
-    from urllib.parse import quote
-    s = f"<svg xmlns='http://www.w3.org/2000/svg' viewBox='{vb}' preserveAspectRatio='xMidYMax slice'>{body}</svg>"
-    return f'url("data:image/svg+xml,{quote(s)}")'
-
-
-STARS = _svg("".join(f"<circle cx='{(i * 37) % 200}' cy='{(i * 53) % 170}' r='{0.6 + (i % 3) * 0.35}' fill='white' opacity='{0.35 + (i % 4) * 0.15}'/>" for i in range(46)))
-SCENES = [
+SCENES = [  # drawn scenes; photo backdrops come from photo_scenes()
     ("glow", "Class glow", "radial-gradient(70% 55% at 50% 45%, color-mix(in srgb, var(--cc) 40%, transparent), transparent 70%), #0a0e0c"),
-    ("moonglade", "Moonglade night",
-     _svg("<path d='M0 280 V214 q14-26 30-8 q10-30 30-12 q12-22 30-4 q16-28 34-6 q14-20 30 0 q12-24 46-6 V280Z' fill='#06140f'/>"
-          "<path d='M0 280 V240 q30-14 60-2 q40-16 80 0 q30-10 60 2 V280Z' fill='#0b2219'/>") + ", "
-     + STARS + ", radial-gradient(circle at 70% 19%, #eef6e8 0 8%, rgba(220,240,225,.25) 8.5% 14%, transparent 22%), "
-     "linear-gradient(180deg, #08161f 0%, #0f3236 55%, #0b201c 100%)"),
-    ("barrens", "Barrens dusk",
-     _svg("<path d='M0 280 V226 H200 V280Z' fill='#2a160c'/><path d='M120 226 V170 M120 182 q-34-10-44 2 q10-14 44-10 q30-6 46 6 q-16-8-46 2' stroke='#1d0f08' stroke-width='5' fill='none'/>"
-          "<ellipse cx='120' cy='168' rx='40' ry='8' fill='#1d0f08'/><path d='M0 226 L18 210 H44 L56 226Z M150 226 L160 214 H186 L196 226Z' fill='#4a2614' opacity='.8'/>") + ", "
-     "radial-gradient(circle at 30% 74%, #ffd27a 0 7%, rgba(255,190,90,.35) 8% 16%, transparent 30%), "
-     "linear-gradient(180deg, #2b1533 0%, #7a2f33 38%, #d9672f 66%, #f3b25c 80%, #2a160c 81%)"),
-    ("mulgore", "Mulgore plains",
-     _svg("<path d='M0 280 V200 q50-34 100-12 q50-26 100 6 V280Z' fill='#6f9b4a'/><path d='M0 280 V232 q60-28 120-6 q40-14 80 4 V280Z' fill='#4c7a33'/>"
-          "<path d='M146 230 v-34 m-6 6 h12 m-12 8 h12' stroke='#3a2a1a' stroke-width='3'/><circle cx='40' cy='60' r='16' fill='white' opacity='.7'/><circle cx='58' cy='58' r='20' fill='white' opacity='.7'/><circle cx='78' cy='64' r='13' fill='white' opacity='.7'/>") + ", "
-     "linear-gradient(180deg, #7fbcd8 0%, #b9dde0 55%, #e3efd3 100%)"),
-    ("molten", "Molten depths",
-     _svg("<path d='M0 280 V196 l18 20 14-34 16 26 12-18 20 30 16-40 18 34 14-22 18 28 22-30 14 24 18-14 V280Z' fill='#1a0705'/>"
-          + "".join(f"<circle cx='{(i * 41) % 200}' cy='{120 + (i * 29) % 110}' r='{1 + i % 2}' fill='#ffb347' opacity='{0.4 + (i % 3) * 0.2}'/>" for i in range(18))) + ", "
-     "radial-gradient(90% 40% at 50% 100%, #ff7a1f 0%, rgba(255,80,20,.55) 30%, transparent 70%), "
-     "linear-gradient(180deg, #0f0404 0%, #2b0a06 60%, #5a1608 100%)"),
-    ("winterspring", "Winterspring frost",
-     _svg("<path d='M0 280 V190 L40 130 L64 168 L100 104 L140 172 L164 140 L200 196 V280Z' fill='#e9f3fb'/>"
-          "<path d='M40 130 L52 148 L44 146 L36 152Z M100 104 L114 128 L102 122 L90 132Z' fill='#ffffff'/><path d='M0 280 V236 q50-16 100-2 q50-14 100 2 V280Z' fill='#bcd5ea'/>"
-          + "".join(f"<circle cx='{(i * 23) % 200}' cy='{(i * 47) % 200}' r='{1 + i % 2}' fill='white' opacity='.8'/>" for i in range(30))) + ", "
-     "linear-gradient(180deg, #5f87b3 0%, #9cbddb 60%, #d6e7f4 100%)"),
-    ("nether", "Twisting Nether",
-     STARS + ", radial-gradient(circle at 50% 46%, rgba(170,255,120,.35) 0 6%, transparent 30%), "
-     "conic-gradient(from 200deg at 50% 46%, #1a0b2e, #4b1d6b, #1f6b4a, #12081f, #5a2a86, #1a0b2e), #12081f"),
 ]
 PHOTOS = []  # set per render by photo_scenes()
-DEFAULT_SCENE = {"Druid": "moonglade", "Warlock": "nether", "Shaman": "barrens", "Mage": "winterspring", "Warrior": "molten", "Hunter": "mulgore"}
+DEFAULT_SCENE = {}  # class -> scene key; every class starts on the class glow
 
 
 PHOTO_EXT = (".jpg", ".jpeg", ".png", ".webp", ".avif", ".heic")
