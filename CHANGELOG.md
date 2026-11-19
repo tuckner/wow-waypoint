@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.2.0...wow-waypoint-v0.3.0) (2026-11-19)
+
+
+### Features
+
+* /macro covers all macro types, not just targeting ([3198ac6](https://github.com/tuckner/wow-waypoint/commit/3198ac6b743dc8071b1608e8bd7472176a55c92e))
+* /macro skill for quest-mob targeting macros ([a185f3f](https://github.com/tuckner/wow-waypoint/commit/a185f3f1717ffc539e5760f266b40ae692ea5235))
+
+
+### Bug Fixes
+
+* /macro writes targeting-only macros with no /run lines ([a72a820](https://github.com/tuckner/wow-waypoint/commit/a72a820a87e0ea24b37adeaf2312e7e63049249d))
+
 ## [0.2.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.1.1...wow-waypoint-v0.2.0) (2026-11-19)
 
 
