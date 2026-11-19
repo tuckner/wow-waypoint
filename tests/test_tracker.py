@@ -500,6 +500,7 @@ class TestRealmFilter(Workspace):
     def test_realm_keys(self):
         self.assertEqual([core.realm_key(x) for x in ("PvP", "PvE", "RP", "RP-PvP", "Normal", None)],
                          ["pvp", "pve", "rp", "rppvp", "pve", None])
+        self.assertEqual([core.realm_label(x) for x in ("Normal", "pvp", "Hardcore", None)], ["PvE", "PvP", "Hardcore", None])
         self.assertEqual(core.realm_filter("pvp, RP-PvP"), {"pvp", "rppvp"})
         with self.assertRaises(SystemExit):
             core.realm_filter("pvx")

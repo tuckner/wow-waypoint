@@ -621,7 +621,10 @@ def cmd_party(args):
         p = core.pace(h)
         eta = core.eta_days(h, 5)
         weak = sorted(core.gear(c["slug"]).items(), key=lambda kv: kv[1]["ilvl"] or 0)[:3]
-        print(f"| {'★' if not c.get('watch') else ''} | {cur['name']} | {cur.get('class')} | {cur['level']} | {cur.get('itemLevel')} | "
+        ilvl = cur.get("itemLevel")
+        if not c.get("watch") and gearsets.wants_sets(c, cur.get("class")) and (ih := gearsets.ilvl_history(c["slug"], c)) and ih[-1][2] != ilvl:
+            ilvl = f"{ih[-1][2]} ({gearsets.short_label(ih[-1][3])}; {ilvl} worn)"
+        print(f"| {'★' if not c.get('watch') else ''} | {cur['name']} | {cur.get('class')} | {cur['level']} | {ilvl} | "
               f"{p['levels_per_day'] if p else '—'} | {f'~{eta}d' if eta else '—'} | {(cur.get('lastLogin') or '?')[:10]} | "
               f"{', '.join(f'{k} {v}' for k, v in cur['professions'].items())} | {', '.join(s + ' ' + str(i['ilvl']) for s, i in weak)} |")
     levels = [h[-1]["level"] for _, h in rows]

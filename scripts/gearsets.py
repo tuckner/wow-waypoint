@@ -64,6 +64,15 @@ def label(s, cls):
     return name
 
 
+def short_label(name):
+    """'Tank + DPS set (feral)' -> 'feral', 'Healer set' -> 'healer', 'Tank + DPS set' -> 'tank + dps'."""
+    if not name:
+        return ""
+    if "(" in name:
+        return name[name.index("(") + 1:name.index(")")]
+    return name.replace(" set", "").lower()
+
+
 def item_cache(slug):
     return core.read_json(core.BASE / slug / "items.json", {}) or {}
 
@@ -86,27 +95,74 @@ def item_record(slug, name, slot, ilvl=None, cache=None):
     return rec
 
 
-def sets(slug, char=None):
-    """Newest worn set per role group, current first. Each: kind, roles, at, level, gear, ilvl, current, filled."""
+def _cache_with_latest(slug):
+    cache = item_cache(slug)
+    for i in (core.latest(slug) or {}).get("items", []):
+        cache.setdefault(i["name"], {k: i.get(k) for k in ("name", "ilvl", "quality", "id", "icon", "lines")})
+    return cache
+
+
+def _classified(snaps, char, cache):
+    """(index, snapshot, kind, roles) for every snapshot whose set kind can be told."""
+    cls = snaps[-1].get("class") if snaps else None
+    for n, s in enumerate(snaps):
+        lines = {slot: cache[name]["lines"] for slot, name in (s.get("gear") or {}).items() if name in cache and cache[name].get("lines")}
+        kind = snapshot_kind(s, lines if len(lines) >= len(s.get("gear") or {}) // 2 else None)
+        if kind:
+            yield n, s, kind, roles_for(kind, char, cls)
+
+
+def avg_ilvl(s):
+    """Average item level of a set: the armory's number from the logout it was recorded in, adjusted for
+    newer pieces filled in since (the armory averages over 16 slots, 17 with an off-hand)."""
+    base = s.get("armoryIlvl")
+    if base is None:
+        return None
+    delta = sum((s["ilvl"].get(slot) or 0) - (s["recordedIlvl"].get(slot) or 0) for slot in s["filled"])
+    return round(base + delta / (17 if "Off Hand" in s["ilvl"] else 16))
+
+
+def ilvl_history(slug, char=None):
+    """[(at, worn ilvl, best set ilvl, best set label)] per snapshot. 'Best' is the highest of the newest set
+    of each role seen so far, so logging out in a lower set (healing instead of feral) doesn't read as a drop."""
     char = char or core.find_char(slug) or {}
     snaps = core.history(slug)
     if not snaps:
         return []
-    latest = core.latest(slug) or {}
-    cache = item_cache(slug)
-    for i in latest.get("items", []):
-        cache.setdefault(i["name"], {k: i.get(k) for k in ("name", "ilvl", "quality", "id", "icon", "lines")})
+    cls = snaps[-1].get("class")
+    kinds = {n: (kind, roles) for n, _, kind, roles in _classified(snaps, char, _cache_with_latest(slug))}
+    seen, out = {}, []
+    for n, s in enumerate(snaps):
+        if s.get("itemLevel") is None:
+            continue
+        if n in kinds:
+            kind, roles = kinds[n]
+            seen["/".join(roles)] = (s["itemLevel"], label({"kind": kind, "roles": roles}, cls))
+        top = max(seen.values(), default=(s["itemLevel"], None))
+        best = top if top[0] >= s["itemLevel"] else (s["itemLevel"], None)
+        out.append((s["at"], s["itemLevel"], best[0], best[1]))
+    now = [x for x in sets(slug, char) if x.get("avg") is not None]
+    if out and now:
+        top = max(now, key=lambda x: x["avg"])
+        if top["avg"] > out[-1][1]:
+            out[-1] = (out[-1][0], out[-1][1], top["avg"], top["label"])
+    return out
+
+
+def sets(slug, char=None):
+    """Newest worn set per role group, current first. Each: kind, roles, at, level, gear, ilvl, current, filled, avg."""
+    char = char or core.find_char(slug) or {}
+    snaps = core.history(slug)
+    if not snaps:
+        return []
+    cache = _cache_with_latest(slug)
     cls = snaps[-1].get("class")
     best = {}
-    for n, s in enumerate(snaps):
-        lines = {slot: cache[name]["lines"] for slot, name in (s.get("gear") or {}).items() if name in cache and cache[name].get("lines")}
-        kind = snapshot_kind(s, lines if len(lines) >= len(s.get("gear") or {}) // 2 else None)
-        if not kind:
-            continue
-        roles = roles_for(kind, char, cls)
+    for n, s, kind, roles in _classified(snaps, char, cache):
         key = "/".join(roles)
         best[key] = {"kind": kind, "roles": roles, "at": s["at"], "level": s.get("level"),
                      "gear": dict(s.get("gear") or {}), "ilvl": dict(s.get("gearIlvl") or {}),
+                     "recordedIlvl": dict(s.get("gearIlvl") or {}), "armoryIlvl": s.get("itemLevel"),
                      "current": n == len(snaps) - 1, "filled": {}}
     out = sorted(best.values(), key=lambda x: (not x["current"], x["at"]), reverse=False)
     cur = next((x for x in out if x["current"]), None)
@@ -126,6 +182,7 @@ def sets(slug, char=None):
         s["items"] = {slot: item_record(slug, name, slot, s["ilvl"].get(slot), cache) for slot, name in s["gear"].items()}
         s["stats"] = {slot: core.item_info(rec)["stats"] for slot, rec in s["items"].items()}
         s["label"] = label(s, cls)
+        s["avg"] = avg_ilvl(s)
     return out
 
 

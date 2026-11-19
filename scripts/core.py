@@ -275,6 +275,11 @@ def realm_key(s):
     return {"normal": "pve", "roleplaying": "rp", "roleplayingpvp": "rppvp", "rpppvp": "rppvp"}.get(k, k) or None
 
 
+def realm_label(s):
+    """Display name for a realm type: 'Normal' -> 'PvE', 'pvp' -> 'PvP'; unknown values pass through."""
+    return REALM_TYPES.get(realm_key(s), s) if s else s
+
+
 def realm_filter(arg):
     """'pvp,rp' -> {'pvp','rp'}; exits on an unknown type."""
     keys = {realm_key(x) for x in (arg or "").split(",") if x.strip()}
@@ -315,6 +320,8 @@ def latest(slug):
     if raw.get("items") and "slotName" in raw["items"][0]:
         from sources import wowfio
         return wowfio.normalize(raw)
+    if raw.get("realmType"):
+        raw["realmType"] = realm_label(raw["realmType"])
     return raw
 
 

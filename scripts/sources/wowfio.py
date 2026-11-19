@@ -5,6 +5,8 @@ import socket
 import urllib.error
 import urllib.request
 
+import core
+
 from .errors import NetworkError, ParseError
 
 DEFAULT_URL = "https://wowf.io/en/players/{region}/{slug}"
@@ -109,7 +111,7 @@ def normalize(raw):
         "race": raw.get("raceName"), "class": raw.get("className"), "faction": raw.get("faction"),
         "level": raw.get("level"), "itemLevel": raw.get("itemLevel"), "lastLogin": raw.get("lastLogin"),
         "quests": raw.get("questsDone"), "kills": (raw.get("pvp") or {}).get("kills"),
-        "realmType": raw.get("ruleset"), "guild": guild.get("name") if isinstance(guild, dict) else guild,
+        "realmType": core.realm_label(raw.get("ruleset")), "guild": guild.get("name") if isinstance(guild, dict) else guild,
         "trees": [{"name": t["name"], "points": t.get("points", 0), "ranks": t.get("ranks") or {}} for t in raw.get("trees", [])],
         "gender": raw.get("gender"), "avatar": raw.get("avatar"), "render": raw.get("render"),
         "professions": [{"name": p["name"], "skill": p.get("skill"), "max": p.get("max"), "secondary": p.get("secondary"),

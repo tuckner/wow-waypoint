@@ -111,10 +111,15 @@ def collect(group=None):
         level = cur["level"]
         cls = cur.get("class") or lat.get("class")
         version = core.version_of(c)
+        multi = not c.get("watch") and gearsets.wants_sets(c, cls)
+        ih = gearsets.ilvl_history(c["slug"], c) if multi else [(s["at"], s.get("itemLevel"), s.get("itemLevel"), None) for s in snaps]
+        best, best_set = (ih[-1][2], ih[-1][3]) if ih else (cur.get("itemLevel"), None)
         out.append({
             "slug": c["slug"], "name": cur["name"], "first": cur["name"].split()[0], "watch": bool(c.get("watch")),
             "main": bool(c.get("main")), "slot": idx, "class": cls, "race": cur.get("race"), "level": level,
-            "ilvl": cur.get("itemLevel"), "quests": cur.get("quests"), "roles": c.get("roles") or [],
+            "ilvl": cur.get("itemLevel"), "ilvlBest": best, "ilvlBestSet": best_set,
+            "ilvlHist": [{"t": a, "worn": w, "best": b, "set": n} for a, w, b, n in ih if w is not None],
+            "quests": cur.get("quests"), "roles": c.get("roles") or [],
             "faction": lat.get("faction"), "realmType": lat.get("realmType"), "guild": lat.get("guild"),
             "lastLogin": lat.get("lastLogin"), "colors": CLASS.get(cls, ("#c9a24a", "#8a6a1c")),
             "points": [{"t": s["at"], "level": s["level"], "ilvl": s.get("itemLevel"), "quests": s.get("quests")} for s in pts],
@@ -141,7 +146,7 @@ def gear_sets(c, level):
     if c.get("watch") or not gearsets.wants_sets(c, cls):
         return []
     ss = gearsets.sets(c["slug"], c)
-    return [{"label": s["label"], "roles": s["roles"], "current": s["current"], "at": s["at"][:10], "level": s["level"],
+    return [{"label": s["label"], "roles": s["roles"], "avg": s.get("avg"), "current": s["current"], "at": s["at"][:10], "level": s["level"],
              "filled": s["filled"], "items": {slot: doll_item(i, level) for slot, i in s["items"].items()}} for s in ss]
 
 
@@ -380,7 +385,7 @@ def readouts(ch):
     today = datetime.now().strftime("%Y-%m-%d")
     tiles = [
         ("Level", num(ch["level"]), f"<span class='meter meter-lv'><span style='width:{ch['level'] / 60 * 100:.1f}%'></span></span><span class='tm-sub'>{60 - ch['level']} to go</span>"),
-        ("Item level", num(ch["ilvl"]), spark_or_note([p["ilvl"] for p in P], f"best {best['ilvl']} · low {low['ilvl']}" if best else "no gear")),
+        ("Item level", num(ch["ilvlBest"] if ch.get("ilvlBest") is not None else ch["ilvl"]), spark_or_note([p["best"] for p in ch["ilvlHist"]] or [p["ilvl"] for p in P], f"best {best['ilvl']} · low {low['ilvl']}" if best else "no gear")),
         ("Quests", num(ch["quests"]), spark_or_note([p["quests"] for p in P], f"+{ch['questDays'].get(today, 0)} today")),
         ("Pace", f"{r:.1f}" if r else "–", f"<span class='tm-unit'>levels / day</span><span class='tm-sub'>{esc(eta)}</span>"),
     ]
@@ -507,6 +512,14 @@ def gear_rows(items, level, top, filled=None):
     return "".join(rows)
 
 
+def ilvl_text(ch):
+    """'ilvl 25 best (feral set) · 23 worn', or 'avg ilvl 23' when there's one set."""
+    if ch.get("ilvlBest") is not None and ch["ilvlBest"] != ch["ilvl"]:
+        s = ch.get("ilvlBestSet")
+        return f"ilvl {ch['ilvlBest']} best" + (f" ({gearsets.short_label(s)} set)" if s else "") + f" · {ch['ilvl']} worn at logout"
+    return f"avg ilvl {ch['ilvl']}"
+
+
 def gear_readout(ch):
     w = worn(ch)
     top = max([i["ilvl"] or 0 for i in w] + [ch["level"] + 5])
@@ -517,7 +530,7 @@ def gear_readout(ch):
         for n, st in enumerate(sets):
             sid = f"{name}-{n}"
             items = ch["items"] if st["current"] else st["items"]
-            when = "worn now" if st["current"] else f"last worn {st['at']} · lvl {st['level']}"
+            when = ("worn now" if st["current"] else f"last worn {st['at']} · lvl {st['level']}") + (f" · ilvl {st['avg']}" if st.get("avg") is not None else "")
             tabs.append(f"<input type='radio' name='{name}' id='{sid}' class='gs-in'{' checked' if n == 0 else ''}>"
                         f"<label for='{sid}' class='gs-tab'>{esc(st['label'])}<small>{esc(when)}</small></label>")
             panels.append(f"<div class='grs gs-p'>{gear_rows(items, ch['level'], top, st['filled'])}</div>")
@@ -525,7 +538,7 @@ def gear_readout(ch):
         note = (f"<p class='gs-note muted'>No {', '.join(gearsets.ROLE_NAME.get(r, r) for r in missing)} set seen yet. Log out wearing it once to record it.</p>"
                 if missing else "<p class='gs-note muted'>Each logout records the set you wear. Older sets refresh when you log out in them.</p>")
         return (f"<section class='console gsets'><header class='ch'><span class='lbl'>Gear sets</span>"
-                f"<span class='ch-r'>avg ilvl {esc(ch['ilvl'])} (worn) · meter vs best {top}</span></header>"
+                f"<span class='ch-r'>{esc(ilvl_text(ch))} · meter vs best {top}</span></header>"
                 f"{''.join(tabs)}{''.join(panels)}{note}</section>")
     return (f"<section class='console'><header class='ch'><span class='lbl'>Gear readout</span>"
             f"<span class='ch-r'>avg ilvl {esc(ch['ilvl'])} · meter vs best {top}</span></header><div class='grs'>{gear_rows(ch['items'], ch['level'], top)}</div></section>")
@@ -981,8 +994,12 @@ document.querySelectorAll('.scenes').forEach(g=>{const slug=g.dataset.slug;let k
 document.querySelectorAll('.rpick').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.realmPick;
   document.querySelectorAll('.rpick').forEach(x=>x.setAttribute('aria-pressed',x===b));
   document.querySelectorAll('[data-view="friends"] [data-realm]').forEach(e=>e.hidden=k!=='all'&&e.dataset.realm!==k)}));
+/* leveling: heroes vs friends */
+document.querySelectorAll('.wpick').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.whoPick,box=b.closest('.pbox');
+  box.querySelectorAll('.wpick').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  box.querySelectorAll('[data-who]').forEach(e=>e.style.display=k==='all'||e.dataset.who===k?'':'none')}));
 /* journal: one book at a time; chapter links scroll inside the book */
-document.querySelectorAll('.jpick').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.jpick').forEach(x=>x.setAttribute('aria-pressed',x===b));
+document.querySelectorAll('.jpick[data-book]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.jpick[data-book]').forEach(x=>x.setAttribute('aria-pressed',x===b));
   document.querySelectorAll('.jbook').forEach(j=>j.hidden=j.dataset.book!==b.dataset.book)}));
 document.querySelectorAll('.jbook').forEach((j,i)=>j.hidden=i>0);
 document.querySelectorAll('[data-jump]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const el=document.getElementById(a.dataset.jump);

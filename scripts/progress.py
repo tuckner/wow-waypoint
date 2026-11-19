@@ -10,6 +10,7 @@ import re
 from datetime import date, datetime, time, timedelta
 
 import core
+import gearsets
 
 MONTHS = {m: i for i, m in enumerate(("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"), 1)}
 CHAPTER = re.compile(r"^##\s+([IVXLC]+)\.\s+(.+)$")
@@ -150,7 +151,7 @@ def board(chars):
             f"<span class='bd-lv'><b>{c['level']}</b><span class='meter meter-race'><span style='width:{c['level'] / 60 * 100:.1f}%'></span></span></span>"
             f"<span class='bd-n'><span class='lbl'>lv/day</span><b>{rate}</b></span>"
             f"<span class='bd-n'><span class='lbl'>to 60</span><b>{esc(eta)}</b></span>"
-            f"<span class='bd-n'><span class='lbl'>ilvl</span><b>{esc(c['ilvl'])}</b></span>"
+            f"<span class='bd-n'><span class='lbl'>ilvl</span><b>{esc(c.get('ilvlBest') or c['ilvl'])}</b></span>"
             f"<span class='bd-n'><span class='lbl'>quests</span><b>{esc(c['quests'])}</b></span></div>")
     recs = []
     if chars:
@@ -158,8 +159,8 @@ def board(chars):
         recs.append(("Highest", f"{top['first']} · {top['level']}"))
         q = max(chars, key=lambda c: c["quests"] or 0)
         recs.append(("Most quests", f"{q['first']} · {q['quests']}"))
-        g = max(chars, key=lambda c: c["ilvl"] or 0)
-        recs.append(("Best geared", f"{g['first']} · ilvl {g['ilvl']}"))
+        g = max(chars, key=lambda c: c.get("ilvlBest") or c["ilvl"] or 0)
+        recs.append(("Best geared", f"{g['first']} · ilvl {g.get('ilvlBest') or g['ilvl']}"))
         fast = [c for c in chars if c["rate"]]
         if fast:
             f = max(fast, key=lambda c: c["rate"])
@@ -175,7 +176,7 @@ def elevation(chars):
     W, H, L, R, T, B = 1000, 340, 44, 120, 16, 30
     all_pts = [p for c in chars for p in c["levelPts"]]
     if not all_pts:
-        return box("sec-level", "Survey", "Elevation", "<div class='empty'>Not enough history yet.</div>")
+        return box("sec-level", "Chart", "Level over time", "<div class='empty'>Not enough history yet.</div>")
     d0 = min(p[0] for p in all_pts).date() - timedelta(days=1)
     today = date.today()
     proj_days = 0
@@ -210,6 +211,8 @@ def elevation(chars):
     for c in sorted(chars, key=lambda c: -c["level"]):
         P = c["levelPts"]
         col = series(c)
+        who = "friend" if c["watch"] else "hero"
+        marks = (len(layers), len(lines), len(flags))
         pts = [(x(p[0]), y(p[1])) for p in P]
         if len(pts) == 1:
             pts = [(pts[0][0] - 6, pts[0][1]), pts[0]]
@@ -242,45 +245,55 @@ def elevation(chars):
             lines.append(f"<line class='el-proj' x1='{lx:.1f}' y1='{ly:.1f}' x2='{ex:.1f}' y2='{ey:.1f}' style='stroke:{col}'/>")
             if eta.date() <= d1:
                 lines.append(f"<circle class='el-goal' cx='{ex:.1f}' cy='{ey:.1f}' r='5' style='stroke:{col}'/>")
-            ends.append((ly, f"{c['first']} {c['level']}", f"60 ~{eta:%b} {eta.day}", col))
+            ends.append((ly, f"{c['first']} {c['level']}", f"60 ~{eta:%b} {eta.day}", col, who))
         else:
-            ends.append((ly, f"{c['first']} {c['level']}", "", col))
+            ends.append((ly, f"{c['first']} {c['level']}", "", col, who))
+        for arr, m in zip((layers, lines, flags), marks):  # group this character's marks so the filter can hide them
+            if len(arr) > m:
+                arr[m:] = [f"<g data-who='{who}'>{''.join(arr[m:])}</g>"]
     ends.sort()
     lab, prev = [], -99
-    for ly, a, b, col in ends:
+    for ly, a, b, col, who in ends:
         ly = max(ly, prev + 30)
         prev = ly
-        lab.append(f"<text class='el-end' x='{W - R + 10}' y='{ly + 4:.1f}' style='fill:{col}'>{esc(a)}</text>"
-                   + (f"<text class='el-eta' x='{W - R + 10}' y='{ly + 17:.1f}'>{esc(b)}</text>" if b else ""))
+        lab.append(f"<g data-who='{who}'><text class='el-end' x='{W - R + 10}' y='{ly + 4:.1f}' style='fill:{col}'>{esc(a)}</text>"
+                   + (f"<text class='el-eta' x='{W - R + 10}' y='{ly + 17:.1f}'>{esc(b)}</text>" if b else "") + "</g>")
     svg = (f"<div class='mapwrap'><svg class='elev' viewBox='0 0 {W} {H}' role='img' aria-label='Level over time'>"
            f"{''.join(g)}{''.join(layers)}{''.join(lines)}{''.join(flags)}{''.join(lab)}</svg></div>")
+    n_h, n_f = sum(not c["watch"] for c in chars), sum(bool(c["watch"]) for c in chars)
+    picks = ("" if not (n_h and n_f) else
+             "<div class='jpicks' role='group' aria-label='Show heroes or friends'>"
+             + "".join(f"<button type='button' class='wpick' data-who-pick='{k}' aria-pressed='{str(k == 'all').lower()}'>{n}</button>"
+                       for k, n in (("all", f"All {n_h + n_f}"), ("hero", f"Heroes {n_h}"), ("friend", f"Friends {n_f}"))) + "</div>")
+    svg = picks + svg
     key = "<div class='el-key'><span><i class='k-line'></i>level</span><span><i class='k-proj'></i>projection at the last 4 days' pace</span><span><i class='k-flag'></i>journal chapter</span></div>"
-    return box("sec-level", "Survey", "Elevation", svg + key, "level 0–60 · hover points and flags")
+    return box("sec-level", "Chart", "Level over time", svg + key, "level 0–60 · hover points and flags")
 
 
 def ilvl_climb(chars):
-    """Average equipped item level over time, one line per character, from snapshots (each logout adds a point)."""
+    """Item level over time, one line per character, from local snapshots (each logout adds a point).
+    The solid line is the best set seen so far (so logging out in a healing set isn't a drop); a faint
+    line shows what was worn at logout where that differs."""
     W, H, L, R, T, B = 1000, 240, 44, 120, 16, 30
     series_ = []
     for c in chars:
-        pts = []
-        for p in c["points"]:
-            if p.get("ilvl") is None:
-                continue
+        pts, worn = [], []
+        for p in c.get("ilvlHist") or []:
             at = core.parse_time(p["t"]).astimezone().replace(tzinfo=None)
-            if pts and pts[-1][1] == p["ilvl"]:
-                continue  # only plot changes; the line carries flat stretches
-            pts.append((at, p["ilvl"]))
+            if not pts or pts[-1][1] != p["best"]:  # only plot changes; the line carries flat stretches
+                pts.append((at, p["best"], p["set"]))
+            if not worn or worn[-1][1] != p["worn"]:
+                worn.append((at, p["worn"]))
         if pts:
-            series_.append((c, pts))
+            series_.append((c, pts, worn if any(w[1] != b for w, b in zip(worn, [x[1] for x in pts])) or len(worn) != len(pts) else []))
     if not series_:
-        return box("sec-ilvl", "Survey", "Item level", "<div class='empty'>No item level history yet.</div>")
+        return box("sec-ilvl", "Chart", "Item level over time", "<div class='empty'>No item level history yet.</div>")
     now = datetime.now()
-    t0 = min(p[0] for _, ps in series_ for p in ps)
+    t0 = min(p[0] for _, ps, _w in series_ for p in ps)
     t0 = datetime.combine(t0.date(), time())
     t1 = datetime.combine(now.date() + timedelta(days=1), time())
     span = max(1.0, (t1 - t0).total_seconds())
-    vals = [p[1] for _, ps in series_ for p in ps]
+    vals = [p[1] for _, ps, ws in series_ for p in ps + ws]
     lo, hi = max(0, min(vals) - min(vals) % 5 - 5), max(vals) - max(vals) % 5 + 5
 
     def x(d):
@@ -302,16 +315,26 @@ def ilvl_climb(chars):
     g.append(f"<line class='today' x1='{x(now):.1f}' x2='{x(now):.1f}' y1='{T}' y2='{H - B}'/>"
              f"<text class='today-t' x='{x(now) + 4:.1f}' y='{T + 10}'>NOW</text>")
     lines, ends = [], []
-    for c, ps in series_:
+    def step_path(pp):  # a value holds until the next logout changes it
+        xy = [(x(pp[0][0]), y(pp[0][1]))]
+        for a, v in pp[1:]:
+            xy += [(x(a), xy[-1][1]), (x(a), y(v))]
+        xy.append((x(now), xy[-1][1]))
+        return "M" + " L".join(f"{a:.1f},{b:.1f}" for a, b in xy)
+
+    for c, ps, ws in series_:
         col = series(c)
-        xy = [(x(a), y(v)) for a, v in ps] + [(x(now), y(ps[-1][1]))]  # carry the current value to now
-        lines.append(f"<path class='el-line{' el-friend' if c['watch'] else ''}' d='M{' L'.join(f'{a:.1f},{b:.1f}' for a, b in xy)}' style='stroke:{col}'/>")
-        for i, (a, v) in enumerate(ps):
+        if ws:
+            lines.append(f"<path class='el-line el-worn' d='{step_path(ws)}' style='stroke:{col}'><title>{esc(c['first'])}: worn at logout</title></path>")
+        lines.append(f"<path class='el-line{' el-friend' if c['watch'] else ''}' d='{step_path([(a, v) for a, v, _ in ps])}' style='stroke:{col}'/>")
+        for i, (a, v, s) in enumerate(ps):
             delta = f" ({v - ps[i - 1][1]:+d})" if i else ""
             lines.append(f"<circle class='el-pt' cx='{x(a):.1f}' cy='{y(v):.1f}' r='3.5' style='fill:{col}'>"
-                         f"<title>{esc(c['first'])}: avg ilvl {v}{delta} on {a:%b} {a.day}</title></circle>")
+                         f"<title>{esc(c['first'])}: ilvl {v}{delta}{f' · {s}' if s else ''} · {a:%b} {a.day}</title></circle>")
         gain = ps[-1][1] - ps[0][1]
-        ends.append((y(ps[-1][1]), f"{c['first']} {ps[-1][1]}", f"{gain:+d} since {ps[0][0]:%b} {ps[0][0].day}" if len(ps) > 1 else "", col))
+        sub_ = (f"{gearsets.short_label(ps[-1][2]) or 'best'} · worn {ws[-1][1]}" if ws and ws[-1][1] != ps[-1][1] else
+                (f"{gain:+d} since {ps[0][0]:%b} {ps[0][0].day}" if len(ps) > 1 else ""))
+        ends.append((y(ps[-1][1]), f"{c['first']} {ps[-1][1]}", sub_, col))
     ends.sort()
     lab, prev = [], -99
     for ly, a, b, col in ends:
@@ -321,7 +344,9 @@ def ilvl_climb(chars):
                    + (f"<text class='el-eta' x='{W - R + 10}' y='{ly + 17:.1f}'>{esc(b)}</text>" if b else ""))
     svg = (f"<div class='mapwrap'><svg class='elev' viewBox='0 0 {W} {H}' role='img' aria-label='Average item level over time'>"
            f"{''.join(g)}{''.join(lines)}{''.join(lab)}</svg></div>")
-    return box("sec-ilvl", "Survey", "Item level", svg, "average equipped ilvl · each logout adds a point")
+    key = ("<div class='el-key'><span><i class='k-line'></i>best set</span>"
+           + ("<span><i class='k-worn'></i>worn at logout</span>" if any(ws for _, _, ws in series_) else "") + "</div>")
+    return box("sec-ilvl", "Chart", "Item level over time", svg + key, "best set's avg ilvl · from your local snapshots")
 
 
 def gear_ladder(chars):
@@ -353,7 +378,7 @@ def gear_ladder(chars):
             g.append(f"<circle class='gl-dot' cx='{x(it['ilvl']) + off:.1f}' cy='{cy:.1f}' r='6' style='fill:{series(c)}'>"
                      f"<title>{esc(c['first'])} · {esc(s)}: {esc(it['name'])} (ilvl {it['ilvl']})</title></circle>")
     del n
-    legend = "".join(f"<span><i style='background:{series(c)}'></i>{esc(c['first'])} <b>avg {esc(c['ilvl'])}</b></span>" for c in chars)
+    legend = "".join(f"<span><i style='background:{series(c)}'></i>{esc(c['first'])} <b>avg {esc(c.get('ilvlBest') or c['ilvl'])}</b></span>" for c in chars)
     return box("sec-gear", "Console", "Gear ladder",
                f"<div class='el-key gl-key'>{legend}</div><div class='mapwrap'><svg class='ladder' viewBox='0 0 {W} {H}' role='img' aria-label='Item level by slot'>{''.join(g)}</svg></div>",
                "item level by slot · hover a dot")
@@ -523,7 +548,7 @@ CSS = """
 .ct-m{stroke:var(--contour);stroke-dasharray:2 4}
 .today{stroke:var(--signal);stroke-width:1.2;stroke-dasharray:3 3}.today-t{font:700 10px var(--font-mono);fill:var(--signal);letter-spacing:.12em}
 .el-line{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
-.el-pt{stroke:var(--sheet);stroke-width:1.5}.el-friend{opacity:.8}
+.el-pt{stroke:var(--sheet);stroke-width:1.5}.el-friend{opacity:.8}.el-worn{stroke-width:1.5;stroke-dasharray:2 3;opacity:.5}.el-key .k-worn{border-top:1.5px dotted var(--ink-2)}
 .el-proj{stroke-width:2;stroke-dasharray:5 6;opacity:.85}.el-goal{fill:var(--sheet);stroke-width:2}
 .el-end{font:700 12.5px var(--font-mono)}.el-eta{font:500 11px var(--font-mono);fill:var(--ink-3)}
 .flag line{stroke:var(--ink-3);stroke-width:1}.flag text{font:700 9px var(--font-mono);fill:#fff}
@@ -552,8 +577,8 @@ CSS = """
 .tl-ev i{width:9px;height:9px;border-radius:50%;margin-top:5px}.tl-chapter i{border-radius:2px;transform:rotate(45deg)}
 .tl-title{font-weight:600;color:var(--ink)}.tl-ev b{color:var(--ink)}
 .jpicks{display:flex;gap:6px;margin-bottom:12px}
-.jpick{font:600 12px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid var(--rule-2);background:transparent;color:var(--ink-2);cursor:pointer}
-.jpick[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.jpick,.wpick{font:600 12px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid var(--rule-2);background:transparent;color:var(--ink-2);cursor:pointer}
+.jpick[aria-pressed="true"],.wpick[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .jbook{display:grid;grid-template-columns:220px minmax(0,1fr);gap:20px}
 .jbook[hidden]{display:none!important}
 .jtoc{display:grid;gap:2px;align-content:start;position:sticky;top:16px}
