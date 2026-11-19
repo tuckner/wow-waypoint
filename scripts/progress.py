@@ -7,7 +7,7 @@ History comes from three places, so the page has something to show from day one:
 """
 import html
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 
 import core
 
@@ -83,18 +83,26 @@ def activity_days(slug):
 
 
 def level_points(c):
-    """(date, level, source) per day: journal chapters first, snapshots override on the same day."""
-    pts = {}
-    for i, ch in enumerate(c.get("chapters", [])):
-        if i == 0 and ch["start"] < ch["day"]:
-            pts.setdefault(ch["start"], (ch["start"], ch["lo"], "journal"))
-        old = pts.get(ch["day"])
-        if not old or old[1] < ch["hi"]:
-            pts[ch["day"]] = (ch["day"], ch["hi"], "journal")
-    for p in c["points"]:
-        d = core.parse_time(p["t"]).astimezone().date()
-        pts[d] = (d, p["level"], "snapshot")
-    return [pts[d] for d in sorted(pts)]
+    """(datetime, level, source), oldest first. Journal chapters give day-level estimates: the first chapter's start
+    sits at the start of its day, and chapters ending on the same day are spread across it so none collapse.
+    Snapshots use their real time and win over journal estimates on the same day. Levels never go down."""
+    raw = []
+    chs = c.get("chapters", [])
+    for i, ch in enumerate(chs):
+        if i == 0:
+            raw.append((datetime.combine(ch["start"], time(6)), ch["lo"], "journal"))
+        same = [x for x in chs if x["day"] == ch["day"]]
+        k = same.index(ch)
+        raw.append((datetime.combine(ch["day"], time(10)) + timedelta(hours=12 * (k + 1) / len(same)), ch["hi"], "journal"))
+    snaps = [(core.parse_time(p["t"]).astimezone().replace(tzinfo=None), p["level"], "snapshot") for p in c["points"]]
+    snap_days = {s[0].date(): s for s in snaps}  # one per day: the latest
+    raw = [r for r in raw if r[0].date() not in snap_days or r[1] < snap_days[r[0].date()][1]] + list(snap_days.values())
+    out = []
+    for p in sorted(raw):
+        if out and p[1] < out[-1][1]:
+            continue
+        out.append(p)
+    return out
 
 
 def enrich(chars):
@@ -112,10 +120,10 @@ def recent_rate(pts, window=4):
     if len(pts) < 2:
         return None
     last = pts[-1]
-    first = next((p for p in pts if (last[0] - p[0]).days <= window), pts[0])
+    first = next((p for p in pts if (last[0] - p[0]).total_seconds() <= window * 86400), pts[0])
     if first is last:
         first = pts[-2]
-    days = max(1, (last[0] - first[0]).days)
+    days = max(1, (last[0] - first[0]).total_seconds() / 86400)
     r = (last[1] - first[1]) / days
     return r if r > 0 else None
 
@@ -168,17 +176,18 @@ def elevation(chars):
     all_pts = [p for c in chars for p in c["levelPts"]]
     if not all_pts:
         return box("sec-level", "Survey", "Elevation", "<div class='empty'>Not enough history yet.</div>")
-    d0 = min(p[0] for p in all_pts) - timedelta(days=1)
+    d0 = min(p[0] for p in all_pts).date() - timedelta(days=1)
     today = date.today()
     proj_days = 0
     for c in chars:
         if c["rate"] and c["level"] < 60:
-            proj_days = max(proj_days, min(14, (60 - c["level"]) / c["rate"]))
-    d1 = today + timedelta(days=max(2, round(proj_days)))
+            proj_days = max(proj_days, min(30, (60 - c["level"]) / c["rate"]))  # far enough that most projections reach 60
+    d1 = today + timedelta(days=max(2, round(proj_days) + 1))
     span = max(1, (d1 - d0).days)
 
     def x(d):
-        return L + (d - d0).days / span * (W - L - R)
+        dt = d if isinstance(d, datetime) else datetime.combine(d, time(12))
+        return L + (dt - datetime.combine(d0, time())).total_seconds() / 86400 / span * (W - L - R)
 
     def y(lv):
         return H - B - lv / 60 * (H - T - B)
@@ -194,9 +203,10 @@ def elevation(chars):
     while d <= d1:
         g.append(f"<text class='ll' x='{x(d):.1f}' y='{H - 8}'>{d:%b} {d.day}</text>")
         d += timedelta(days=step)
-    g.append(f"<line class='today' x1='{x(today):.1f}' x2='{x(today):.1f}' y1='{T}' y2='{H - B}'/><text class='today-t' x='{x(today) + 4:.1f}' y='{T + 10}'>TODAY</text>")
+    now = datetime.now()
+    g.append(f"<line class='today' x1='{x(now):.1f}' x2='{x(now):.1f}' y1='{T}' y2='{H - B}'/><text class='today-t' x='{x(now) + 4:.1f}' y='{T + 10}'>TODAY</text>")
 
-    layers, lines, flags, ends = [], [], [], []
+    layers, lines, flags, ends, placed = [], [], [], [], []
     for c in sorted(chars, key=lambda c: -c["level"]):
         P = c["levelPts"]
         col = series(c)
@@ -204,14 +214,20 @@ def elevation(chars):
         if len(pts) == 1:
             pts = [(pts[0][0] - 6, pts[0][1]), pts[0]]
         path = "M" + " L".join(f"{a:.1f},{b:.1f}" for a, b in pts)
-        layers.append(f"<path d='{path} L{pts[-1][0]:.1f},{H - B} L{pts[0][0]:.1f},{H - B} Z' style='fill:{col};opacity:.14'/>")
+        if not c["watch"]:  # terrain fill for your own characters only; friends are a line
+            layers.append(f"<path d='{path} L{pts[-1][0]:.1f},{H - B} L{pts[0][0]:.1f},{H - B} Z' style='fill:{col};opacity:.14'/>")
         lines.append(f"<path class='el-line' d='{path}' style='stroke:{col}'/>")
         for p in P:
             lines.append(f"<circle class='el-pt' cx='{x(p[0]):.1f}' cy='{y(p[1]):.1f}' r='{3.5 if p[2] == 'snapshot' else 3}' style='fill:{col}'>"
                          f"<title>{esc(c['first'])}: level {p[1]} on {p[0]:%b} {p[0].day} ({p[2]})</title></circle>")
+        jp = [p for p in P if p[2] == "journal"]
         for ch in c["chapters"]:
-            fx, fy = x(ch["day"]), y(ch["hi"])
-            flags.append(f"<g class='flag'><line x1='{fx:.1f}' x2='{fx:.1f}' y1='{fy:.1f}' y2='{fy - 26:.1f}'/>"
+            at = next((p for p in jp if p[0].date() == ch["day"] and p[1] == ch["hi"]), None)
+            fx, fy = x(at[0] if at else ch["day"]), y(ch["hi"])
+            while any(abs(fx - ox) < 22 and abs(fy - oy) < 14 for ox, oy in placed):
+                fy -= 14  # stack flags that would overlap
+            placed.append((fx, fy))
+            flags.append(f"<g class='flag'><line x1='{fx:.1f}' x2='{fx:.1f}' y1='{y(ch['hi']):.1f}' y2='{fy - 26:.1f}'/>"
                          f"<path d='M{fx:.1f},{fy - 26:.1f} h18 l-4,5 l4,5 h-18 z' style='fill:{col}'/>"
                          f"<text x='{fx + 2:.1f}' y='{fy - 18:.1f}'>{esc(ch['num'])}</text>"
                          f"<title>{esc(c['first'])} · {esc(ch['num'])}. {esc(ch['title'])} (levels {ch['lo']}→{ch['hi']}, {ch['day']:%b} {ch['day'].day})</title></g>")
@@ -220,10 +236,11 @@ def elevation(chars):
         if c["rate"] and c["level"] < 60:
             days = (60 - c["level"]) / c["rate"]
             eta = last[0] + timedelta(days=days)
-            ex = x(min(eta, d1))
-            ey = y(min(60, last[1] + c["rate"] * (min(eta, d1) - last[0]).days))
+            end = min(eta, datetime.combine(d1, time()))
+            ex = x(end)
+            ey = y(min(60, last[1] + c["rate"] * (end - last[0]).total_seconds() / 86400))
             lines.append(f"<line class='el-proj' x1='{lx:.1f}' y1='{ly:.1f}' x2='{ex:.1f}' y2='{ey:.1f}' style='stroke:{col}'/>")
-            if eta <= d1:
+            if eta.date() <= d1:
                 lines.append(f"<circle class='el-goal' cx='{ex:.1f}' cy='{ey:.1f}' r='5' style='stroke:{col}'/>")
             ends.append((ly, f"{c['first']} {c['level']}", f"60 ~{eta:%b} {eta.day}", col))
         else:
@@ -239,6 +256,72 @@ def elevation(chars):
            f"{''.join(g)}{''.join(layers)}{''.join(lines)}{''.join(flags)}{''.join(lab)}</svg></div>")
     key = "<div class='el-key'><span><i class='k-line'></i>level</span><span><i class='k-proj'></i>projection at the last 4 days' pace</span><span><i class='k-flag'></i>journal chapter</span></div>"
     return box("sec-level", "Survey", "Elevation", svg + key, "level 0–60 · hover points and flags")
+
+
+def ilvl_climb(chars):
+    """Average equipped item level over time, one line per character, from snapshots (each logout adds a point)."""
+    W, H, L, R, T, B = 1000, 240, 44, 120, 16, 30
+    series_ = []
+    for c in chars:
+        pts = []
+        for p in c["points"]:
+            if p.get("ilvl") is None:
+                continue
+            at = core.parse_time(p["t"]).astimezone().replace(tzinfo=None)
+            if pts and pts[-1][1] == p["ilvl"]:
+                continue  # only plot changes; the line carries flat stretches
+            pts.append((at, p["ilvl"]))
+        if pts:
+            series_.append((c, pts))
+    if not series_:
+        return box("sec-ilvl", "Survey", "Item level", "<div class='empty'>No item level history yet.</div>")
+    now = datetime.now()
+    t0 = min(p[0] for _, ps in series_ for p in ps)
+    t0 = datetime.combine(t0.date(), time())
+    t1 = datetime.combine(now.date() + timedelta(days=1), time())
+    span = max(1.0, (t1 - t0).total_seconds())
+    vals = [p[1] for _, ps in series_ for p in ps]
+    lo, hi = max(0, min(vals) - min(vals) % 5 - 5), max(vals) - max(vals) % 5 + 5
+
+    def x(d):
+        return L + (d - t0).total_seconds() / span * (W - L - R)
+
+    def y(v):
+        return H - B - (v - lo) / max(1, hi - lo) * (H - T - B)
+
+    g = []
+    for v in range(lo, hi + 1, 5):
+        g.append(f"<line class='{'ct-i' if v in (lo, hi) else 'ct'}' x1='{L}' x2='{W - R}' y1='{y(v):.1f}' y2='{y(v):.1f}'/>"
+                 f"<text class='ll' x='{L - 8}' y='{y(v) + 4:.1f}' text-anchor='end'>{v}</text>")
+    days = (t1 - t0).days
+    step = max(1, days // 8)
+    d = t0
+    while d < t1:
+        g.append(f"<text class='ll' x='{x(d):.1f}' y='{H - 8}'>{d:%b} {d.day}</text>")
+        d += timedelta(days=step)
+    g.append(f"<line class='today' x1='{x(now):.1f}' x2='{x(now):.1f}' y1='{T}' y2='{H - B}'/>"
+             f"<text class='today-t' x='{x(now) + 4:.1f}' y='{T + 10}'>NOW</text>")
+    lines, ends = [], []
+    for c, ps in series_:
+        col = series(c)
+        xy = [(x(a), y(v)) for a, v in ps] + [(x(now), y(ps[-1][1]))]  # carry the current value to now
+        lines.append(f"<path class='el-line{' el-friend' if c['watch'] else ''}' d='M{' L'.join(f'{a:.1f},{b:.1f}' for a, b in xy)}' style='stroke:{col}'/>")
+        for i, (a, v) in enumerate(ps):
+            delta = f" ({v - ps[i - 1][1]:+d})" if i else ""
+            lines.append(f"<circle class='el-pt' cx='{x(a):.1f}' cy='{y(v):.1f}' r='3.5' style='fill:{col}'>"
+                         f"<title>{esc(c['first'])}: avg ilvl {v}{delta} on {a:%b} {a.day}</title></circle>")
+        gain = ps[-1][1] - ps[0][1]
+        ends.append((y(ps[-1][1]), f"{c['first']} {ps[-1][1]}", f"{gain:+d} since {ps[0][0]:%b} {ps[0][0].day}" if len(ps) > 1 else "", col))
+    ends.sort()
+    lab, prev = [], -99
+    for ly, a, b, col in ends:
+        ly = max(ly, prev + 30)
+        prev = ly
+        lab.append(f"<text class='el-end' x='{W - R + 10}' y='{ly + 4:.1f}' style='fill:{col}'>{esc(a)}</text>"
+                   + (f"<text class='el-eta' x='{W - R + 10}' y='{ly + 17:.1f}'>{esc(b)}</text>" if b else ""))
+    svg = (f"<div class='mapwrap'><svg class='elev' viewBox='0 0 {W} {H}' role='img' aria-label='Average item level over time'>"
+           f"{''.join(g)}{''.join(lines)}{''.join(lab)}</svg></div>")
+    return box("sec-ilvl", "Survey", "Item level", svg, "average equipped ilvl · each logout adds a point")
 
 
 def gear_ladder(chars):
@@ -415,7 +498,7 @@ def views(chars):
     body = {
         "standings": board(chars) + professions(chars),
         "leveling": elevation(chars),
-        "gear": gear_ladder(chars),
+        "gear": ilvl_climb(chars) + gear_ladder(chars),
         "activity": activity(chars) + timeline(chars),
         "journal": journal_box(chars),
     }
@@ -440,7 +523,7 @@ CSS = """
 .ct-m{stroke:var(--contour);stroke-dasharray:2 4}
 .today{stroke:var(--signal);stroke-width:1.2;stroke-dasharray:3 3}.today-t{font:700 10px var(--font-mono);fill:var(--signal);letter-spacing:.12em}
 .el-line{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
-.el-pt{stroke:var(--sheet);stroke-width:1.5}
+.el-pt{stroke:var(--sheet);stroke-width:1.5}.el-friend{opacity:.8}
 .el-proj{stroke-width:2;stroke-dasharray:5 6;opacity:.85}.el-goal{fill:var(--sheet);stroke-width:2}
 .el-end{font:700 12.5px var(--font-mono)}.el-eta{font:500 11px var(--font-mono);fill:var(--ink-3)}
 .flag line{stroke:var(--ink-3);stroke-width:1}.flag text{font:700 9px var(--font-mono);fill:#fff}
