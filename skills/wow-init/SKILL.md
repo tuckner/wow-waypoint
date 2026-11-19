@@ -59,7 +59,7 @@ One question per character whose class can do more than one role (multiSelect; o
 Save: `profile set goals=... answerStyle=brief spoilers=avoid recapVoice=light`. For free-text goals ("60 by January"), store the user's words.
 
 ## 9. Friends (free text, optional but encouraged)
-"Want to add friends' characters? They show up in the party view, friend news at session start, and group coverage in /wow-instance briefings (who handles curses, interrupts…). Names, region, and a group name if you like. It's polite to ask them first, even though armory pages are public."
+"Want to add friends' characters? They show up in the party view, friend news at session start, and group coverage in /wow-instance briefings (who handles curses, interrupts…). They can be on any realm; you don't need to play together. Names, region, and a group name if you like. It's polite to ask them first, even though armory pages are public."
 For each: `wowchar add "<Name>" --region <r> --watch [--group <name>]`, confirming like step 6. Also ask: solo / duo-trio / guild, the guild name, and the usual play night → `profile set group.type=duo-trio group.guild=... group.night=Tue`.
 
 ## 10. Status line

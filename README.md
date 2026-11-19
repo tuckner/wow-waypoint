@@ -43,7 +43,7 @@ It asks where to save your notes: the folder you're in, `~/wow-notes`, or any fo
 
 ⚔️ **`/wow-instance <name>`: a briefing before you go in.** What *you* should dispel, interrupt and crowd-control, where to stand, and which loot is for you.
 
-👥 **`/wow-party`: you and your friends.** Who's ahead, what they've been up to, and which dungeons fit everyone.
+👥 **`/wow-party`: you and your friends.** Follow friends' progress on any realm: who's ahead and what they've been up to. If you do play together, it also picks dungeons that fit everyone.
 
 🎯 **`/wow-macro`: one-button tricks.** In-game macros for your character: find a quest mob or rare, mouseover heals, form plus opener, trinkets, party shortcuts. Plain slash commands, no scripts.
 
@@ -68,7 +68,7 @@ Then restart Claude Code. You can also turn on auto-updates under `/plugin` → 
 
 ## 🤝 Playing with friends
 
-Your friends can install it the same way and follow each other with `/wow-party`. Only add someone's character if they're okay with it.
+Your friends can install it the same way and follow each other with `/wow-party`. You don't need to be on the same realm or group up; it's just following each other's progress. Only add someone's character if they're okay with it.
 
 ## 🗑️ Removing it
 

@@ -40,7 +40,7 @@ argument-hint: "[topic: setup | tracking | log | milestones | instance | macro |
 - `/wow-dashboard`: a page with charts of level and item level over time, quests per day, rough time to max level, gear and professions. It opens in your browser and stays on your computer.
 
 **Friends**
-- `/wow-party`: follow friends' characters (read-only, from their public armory page). See who's ahead, what they did this week, which dungeons fit everyone, and who needs what. Friend news shows up at session start, and `/wow-instance` can tell who in the group covers curses, poison or interrupts.
+- `/wow-party`: follow friends' characters on any realm (read-only, from their public armory page; you don't need to group with them). See who's ahead, what they did this week, which dungeons fit the ones you play with, and who needs what. Friend news shows up at session start, and `/wow-instance` can tell who in the group covers curses, poison or interrupts.
 
 **Always on**
 - **Status line:** a short line under the prompt, e.g. `Brightmane 28 Druid · iLvl 24 · next: Travel Form @30 · ⚠ repair gear`. It shows your main (favorite) character; say "playing <name> today" to pin another one for just that session (`focus`), without changing your main.
