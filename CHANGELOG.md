@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.1.1...wow-waypoint-v0.2.0) (2026-11-19)
+
+
+### Features
+
+* drop the drawn card scenes; class glow plus photo backdrops ([331744e](https://github.com/tuckner/wow-waypoint/commit/331744e3304732033bc8c5cacd86f2f117773c00))
+* photo backdrops for trading cards and a download icon on the card ([a5a45da](https://github.com/tuckner/wow-waypoint/commit/a5a45dabb2fb5ec9ebcd27eebd6b63487c52b536))
+
+
+### Bug Fixes
+
+* card backdrops show again; last names on cards and in the sidebar ([ad1dbbc](https://github.com/tuckner/wow-waypoint/commit/ad1dbbc1e2207b5e3c875d35afa7e7fdcdfa3798))
+* sit the card model lower so it stands on the backdrop ([cb3522f](https://github.com/tuckner/wow-waypoint/commit/cb3522f3e983482dd11aa9e1c412707bfb3f220c))
+
 ## [0.1.1](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.0.1...wow-waypoint-v0.1.1) (2026-11-19)
 
 
