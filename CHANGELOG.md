@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.3.0...wow-waypoint-v0.4.0) (2026-11-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* prefix every skill with wow- (/wow-plan, /wow-recap, /wow-instance, ...)
+
+### Features
+
+* filter friends by realm type (PvP, PvE, RP, RP-PvP) on the dashboard and with `party --realm` ([df0bbc9](https://github.com/tuckner/wow-waypoint/commit/df0bbc999e5c440cf192e207388d57ff99c0cbc4))
+* gear sets by role (healer vs tank + DPS) in summary.md, `sets`, and the dashboard gear readout ([df0bbc9](https://github.com/tuckner/wow-waypoint/commit/df0bbc999e5c440cf192e207388d57ff99c0cbc4))
+* prefix every skill with wow- (/wow-plan, /wow-recap, /wow-instance, ...) ([df0bbc9](https://github.com/tuckner/wow-waypoint/commit/df0bbc999e5c440cf192e207388d57ff99c0cbc4))
+* session hook flags due recaps and plans and runs them (profile autoSkills=auto|offer|off) ([df0bbc9](https://github.com/tuckner/wow-waypoint/commit/df0bbc999e5c440cf192e207388d57ff99c0cbc4))
+
 ## [0.3.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.2.0...wow-waypoint-v0.3.0) (2026-11-19)
 
 
