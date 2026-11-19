@@ -35,3 +35,11 @@ Waypoint deliberately avoids the game's own UI language (dark stone, gold serif,
 - One signal-orange element per view.
 - Images (renders, icons) are cached in `notes/cache/` and inlined; only image URLs leave the machine.
 - No emoji or ornament. The structure has to carry meaning: set codes, contour index lines every 10 levels, pips from real quality counts.
+
+## Backdrops
+Cards can use photo backdrops from two folders:
+- `notes/backdrops/` in your notes folder: your own images, such as screenshots. Never committed.
+- `design/backdrops/` in this repo: shipped backdrops. Only original art that's free to redistribute goes here, never game screenshots.
+
+Any `.jpg`, `.png`, `.webp`, `.avif` or `.heic` works. Each image is cropped to the card's art window (640×512), saved as a small JPEG once in `notes/cache/backdrops/` (with Pillow if installed, else macOS `sips`), and inlined into the page. The file name is the backdrop's label, so `Sunset meadow.jpg` shows as "Sunset meadow".
+

@@ -177,7 +177,7 @@ def spec_of(ch):
     return (top["name"] if top else ch["class"]), arch
 
 
-def card(ch, link=False):
+def card(ch, link=False, save=False):
     v = ch["stats"]
     spec, arch = spec_of(ch)
     stats = "".join(f"<div class='cs'><span>{k}</span><b>{num(v.get(key), pct) if v.get(key) is not None else '–'}</b></div>"
@@ -194,9 +194,12 @@ def card(ch, link=False):
                 f"<span class='sig-t'><span class='sig-l'>Signature · ilvl {sig['ilvl']}</span><span class='sig-n cq-{esc(sig['quality'])}'>{esc(sig['name'])}</span></span></div>") if sig else ""
     tag, attrs = ("a", f" href='#{esc(ch['slug'])}' data-goto='{esc(ch['slug'])}'") if link else ("div", "")
     last = ch["name"][len(ch["first"]):].strip()
+    save_btn = (f"<button type='button' class='card-save' data-slug='{esc(ch['slug'])}' aria-label='Save card as image' title='Save card as image'>"
+                "<svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'>"
+                "<path d='M8 2.5v7.5M4.8 7 8 10.2 11.2 7M3 13.5h10'/></svg></button>") if save and not link else ""
     return (f"<{tag} class='card' data-slug='{esc(ch['slug'])}' style='{cvars(ch)}'{attrs} aria-label='{esc(ch['name'])}, level {ch['level']} {esc(spec)} {esc(ch['class'])}'>"
             f"<div class='card-in'><div class='card-top'><span class='gem'>{ch['level']}</span>"
-            f"<span class='cn'><b>{esc(ch['first'])}</b>{f'<small>{esc(last)}</small>' if last else ''}</span><span class='cls'>{esc(ch['class'])}</span></div>"
+            f"<span class='cn'><b>{esc(ch['first'])}</b>{f'<small>{esc(last)}</small>' if last else ''}</span><span class='cls'>{esc(ch['class'])}</span>{save_btn}</div>"
             f"<div class='window' data-bg='{DEFAULT_SCENE.get(ch['class'], 'glow')}'><div class='scene' aria-hidden='true'></div><div class='glow'></div>{art}{ribbon}</div>"
             f"<div class='plate'><span>{esc(spec)} · {esc(ch['race'])}</span><span class='pips' title='Gear grade'>{pips}</span></div>"
             f"{sig_html}<div class='cstats'>{stats}</div>"
@@ -571,7 +574,7 @@ def log_console(ch):
 
 def character_view(ch):
     return (f"<div class='view' data-view='{esc(ch['slug'])}' style='{cvars(ch)}'>"
-            f"<div class='hero'><div class='hero-card'>{card(ch)}{scene_picker(ch)}</div>{subject(ch)}</div>"
+            f"<div class='hero'><div class='hero-card'>{card(ch, save=True)}{scene_picker(ch, PHOTOS)}</div>{subject(ch)}</div>"
             f"<section class='survey'><header class='sh'><span class='lbl'>Survey</span><h2>Route to 60</h2>"
             f"<span class='sh-r'>Dungeon bars share the level scale · green ✓ = in your log · outlined = your level now</span></header>{survey_map([ch], ch)}</section>"
             f"<div class='cols'><div class='col'>{gear_readout(ch)}{talents_console(ch)}</div>"
@@ -927,17 +930,25 @@ document.querySelectorAll('[data-jump]').forEach(a=>a.addEventListener('click',e
 
 /* save a card as a PNG (html-to-image from cdnjs, loaded on first use) */
 const H2I='https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js';
+/* web fonts for the exported image: fetch the Google Fonts CSS and inline its font files (both send CORS headers) */
+let fontCSS;async function embedFonts(){if(fontCSS!==undefined)return fontCSS;fontCSS='';
+  try{const link=document.querySelector('link[href*="fonts.googleapis.com/css"]');if(!link)return fontCSS;
+    let css=await (await fetch(link.href)).text();const urls=[...new Set([...css.matchAll(/url\((https:[^)]+)\)/g)].map(m=>m[1]))];
+    await Promise.all(urls.map(async u=>{const b=await (await fetch(u)).blob();const d=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});css=css.split(u).join(d)}));
+    fontCSS=css}catch(e){fontCSS=''}return fontCSS}
 let h2i;function loadH2I(){return h2i||(h2i=new Promise((ok,no)=>{const s=document.createElement('script');s.src=H2I;s.onload=()=>ok(window.htmlToImage);s.onerror=no;document.head.appendChild(s)}))}
 function shot(src,name){const o=document.createElement('div');o.className='shot';o.innerHTML=`<div class="shot-in" role="dialog" aria-label="Card image"><img alt="Card image" src="${src}">
   <div class="shot-row"><a href="${src}" download="${name}">Download PNG</a><button type="button">Close</button></div>
   <p>If the download button does nothing (for example on a shared page), right-click or long-press the image and save it.</p></div>`;
   const close=()=>o.remove();o.querySelector('button').onclick=close;o.addEventListener('click',e=>{if(e.target===o)close()});
   addEventListener('keydown',function k(e){if(e.key==='Escape'){close();removeEventListener('keydown',k)}});document.body.appendChild(o);o.querySelector('a').focus()}
-document.querySelectorAll('.save-card').forEach(b=>b.addEventListener('click',async()=>{const card=document.querySelector(`.view:not([hidden]) .card[data-slug="${b.dataset.slug}"]`);if(!card)return;
-  const label=b.textContent;b.disabled=true;b.textContent='Rendering…';
-  try{const lib=await loadH2I();const png=await lib.toPng(card,{pixelRatio:2,cacheBust:false,style:{transform:'none'}});shot(png,b.dataset.slug+'-card.png')}
-  catch(e){b.textContent='Could not render. Try again';setTimeout(()=>b.textContent=label,2500);b.disabled=false;return}
-  b.disabled=false;b.textContent=label}));
+document.querySelectorAll('.card-save').forEach(b=>b.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();const card=b.closest('.card');if(!card)return;
+  const label=b.getAttribute('aria-label');b.disabled=true;b.classList.remove('err');b.setAttribute('aria-label','Rendering card image');
+  try{const [lib,fonts]=await Promise.all([loadH2I(),embedFonts()]);
+    const png=await lib.toPng(card,{pixelRatio:2,cacheBust:false,style:{transform:'none'},fontEmbedCSS:fonts||undefined,skipFonts:!fonts,filter:n=>!(n.classList&&n.classList.contains('card-save'))});
+    shot(png,b.dataset.slug+'-card.png')}
+  catch(err){b.classList.add('err');b.title="Couldn't render the image. Click to try again"}
+  b.disabled=false;b.setAttribute('aria-label',label)}));
 
 /* relative "seen" */
 document.querySelectorAll('.seen[data-ts]').forEach(s=>{const t=Date.parse(s.dataset.ts);if(!t)return;const m=(Date.now()-t)/6e4;
@@ -1052,15 +1063,94 @@ SCENES = [
      STARS + ", radial-gradient(circle at 50% 46%, rgba(170,255,120,.35) 0 6%, transparent 30%), "
      "conic-gradient(from 200deg at 50% 46%, #1a0b2e, #4b1d6b, #1f6b4a, #12081f, #5a2a86, #1a0b2e), #12081f"),
 ]
+PHOTOS = []  # set per render by photo_scenes()
 DEFAULT_SCENE = {"Druid": "moonglade", "Warlock": "nether", "Shaman": "barrens", "Mage": "winterspring", "Warrior": "molten", "Hunter": "mulgore"}
 
 
-def scene_picker(ch):
+PHOTO_EXT = (".jpg", ".jpeg", ".png", ".webp", ".avif", ".heic")
+PHOTO_W, PHOTO_H = 640, 512  # 2x the card's art window, which is about 5:4
+
+
+def photo_dirs():
+    """Shipped backdrops (design/backdrops, original art only) and your own (notes/backdrops, never committed)."""
+    return [core.KIT / "design" / "backdrops", core.ROOT / "notes" / "backdrops"]
+
+
+def optimize_photo(src):
+    """Crop to the card window and save a small JPEG once, in notes/cache/backdrops. Uses macOS sips or Pillow."""
+    import hashlib
+    import shutil
+    import subprocess
+    st = src.stat()
+    key = hashlib.sha1(f"{src.resolve()}:{st.st_mtime_ns}:{st.st_size}".encode()).hexdigest()[:16]
+    out = wowhead.cache_dir("backdrops") / f"{key}.jpg"
+    if out.exists():
+        return out.read_bytes()
+    try:
+        from PIL import Image  # optional
+        with Image.open(src) as im:
+            im = im.convert("RGB")
+            s = max(PHOTO_W / im.width, PHOTO_H / im.height)
+            im = im.resize((max(PHOTO_W, round(im.width * s)), max(PHOTO_H, round(im.height * s))))
+            l, tp = (im.width - PHOTO_W) // 2, (im.height - PHOTO_H) // 2
+            im.crop((l, tp, l + PHOTO_W, tp + PHOTO_H)).save(out, "JPEG", quality=72, optimize=True, progressive=True)
+            return out.read_bytes()
+    except ImportError:
+        pass
+    except Exception:
+        return None
+    if shutil.which("sips"):
+        try:
+            dims = subprocess.run(["sips", "-g", "pixelWidth", "-g", "pixelHeight", str(src)], capture_output=True, text=True, timeout=20).stdout
+            w, h = (int(x.split(":")[1]) for x in dims.strip().splitlines()[1:3])
+            s = max(PHOTO_W / w, PHOTO_H / h)
+            rw, rh = max(PHOTO_W, round(w * s)), max(PHOTO_H, round(h * s))
+            subprocess.run(["sips", "-s", "format", "jpeg", "-s", "formatOptions", "72", "-z", str(rh), str(rw), str(src), "--out", str(out)],
+                           capture_output=True, timeout=30, check=True)
+            subprocess.run(["sips", "-c", str(PHOTO_H), str(PHOTO_W), str(out)], capture_output=True, timeout=30, check=True)
+            return out.read_bytes()
+        except Exception:
+            out.unlink(missing_ok=True)
+            return None
+    return src.read_bytes() if src.suffix.lower() in (".jpg", ".jpeg") and src.stat().st_size < 400_000 else None
+
+
+def photo_scenes():
+    """[(key, name, data_uri)] for every backdrop image found; the name comes from the file name."""
+    seen, out = set(), []
+    for d in photo_dirs():
+        if not d.is_dir():
+            continue
+        for f in sorted(d.iterdir()):
+            if f.suffix.lower() not in PHOTO_EXT or f.name.startswith("."):
+                continue
+            slug = re.sub(r"[^a-z0-9]+", "-", f.stem.lower()).strip("-")[:40] or "photo"
+            key = f"photo-{slug}"
+            if key in seen:
+                continue
+            data = optimize_photo(f)
+            if not data:
+                continue
+            seen.add(key)
+            name = re.sub(r"[-_]+", " ", f.stem).strip().capitalize()
+            out.append((key, name, wowhead.data_uri(data, "jpg")))
+    return out
+
+
+def scene_picker(ch, photos=()):
     sel = DEFAULT_SCENE.get(ch["class"], "glow")
-    btns = "".join(f"<button type='button' class='sc-b' data-scene='{k}' aria-label='Card background: {esc(n)}' title='{esc(n)}' aria-pressed='{str(k == sel).lower()}'>"
-                   f"<span class='sc-sw' data-bg='{k}'></span></button>" for k, n, _ in SCENES)
-    return (f"<div class='scenes' data-slug='{esc(ch['slug'])}' role='group' aria-label='Card background'><span class='lbl'>Backdrop</span><div class='sc-row'>{btns}</div>"
-            f"<button type='button' class='save-card' data-slug='{esc(ch['slug'])}'>Save card as image</button></div>")
+    opts = [(k, n) for k, n, _ in SCENES] + [(k, n) for k, n, _ in photos]
+    btns = "".join(f"<button type='button' class='sc-b{' sc-photo' if k.startswith('photo-') else ''}' data-scene='{k}' aria-label='Card background: {esc(n)}' title='{esc(n)}' aria-pressed='{str(k == sel).lower()}'>"
+                   f"<span class='sc-sw' data-bg='{k}'></span></button>" for k, n in opts)
+    return (f"<div class='scenes' data-slug='{esc(ch['slug'])}' role='group' aria-label='Card background'><span class='lbl'>Backdrop</span>"
+            f"<div class='sc-row'>{btns}</div></div>")
+
+
+def photos_css(photos):
+    roots = "".join(f"--{k}:url({uri});" for k, _, uri in photos)
+    rules = "".join(f".window[data-bg='{k}']{{background:linear-gradient(180deg,rgba(0,0,0,.08) 35%,rgba(0,0,0,.6)),var(--{k}) center/cover}}"
+                    f".sc-sw[data-bg='{k}']{{background:var(--{k}) center/cover}}" for k, _, _ in photos)
+    return (f":root{{{roots}}}" + rules) if photos else ""
 
 
 SCENES_CSS = "".join(f".window[data-bg='{k}'],.sc-sw[data-bg='{k}']{{background:{bg};background-size:cover;background-position:center bottom}}" for k, _, bg in SCENES) + """
@@ -1069,8 +1159,10 @@ SCENES_CSS = "".join(f".window[data-bg='{k}'],.sc-sw[data-bg='{k}']{{background:
 .sc-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 .sc-b{padding:2px;border-radius:50%;border:2px solid transparent;background:none;cursor:pointer;line-height:0}
 .sc-b[aria-pressed='true']{border-color:var(--ink)}
-.save-card{margin-top:4px;font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:6px;border:1px solid var(--rule-2);background:var(--sheet);color:var(--ink);cursor:pointer}
-.save-card:hover{background:var(--sheet-2)}.save-card[disabled]{opacity:.6;cursor:progress}
+.card-save{flex:none;display:grid;place-items:center;width:26px;height:26px;margin-left:2px;border-radius:50%;border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.07);color:var(--card-ink);cursor:pointer;padding:0;transition:background .15s,border-color .15s}
+.card-save:hover{background:color-mix(in srgb,var(--cc) 35%,transparent);border-color:var(--cc)}
+.card-save svg{width:14px;height:14px}.card-save[disabled]{opacity:.55;cursor:progress}.card-save.err{border-color:#ef5b49}
 .shot{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:rgba(5,8,7,.72);padding:max(16px,env(safe-area-inset-top,0px)) 16px}
 .shot-in{background:var(--sheet);border-radius:12px;padding:16px;display:grid;gap:12px;justify-items:center;max-width:min(92vw,460px);max-height:92vh;overflow:auto}
 .shot-in img{max-width:100%;max-height:62vh;border-radius:10px}.shot-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
@@ -1098,6 +1190,8 @@ def render(group=None, fragment=False):
     # series colors: light on bare :root, dark in the dark blocks (the first bare-root DARK line is dropped)
     page = page.replace(":root{" + ";".join(f"--s{i + 1}:{c}" for i, c in enumerate(DARK)) + "}\n", "", 1)
     progress.enrich(chars)
+    global PHOTOS
+    PHOTOS = photo_scenes()
     payload = json.dumps(chart_payload(chars)).replace("</", "<\\/")
     mine = [c for c in chars if not c["watch"]]
     friends = [c for c in chars if c["watch"]]
@@ -1120,7 +1214,7 @@ def render(group=None, fragment=False):
     fonts = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
              '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap">')
     head = (f'<title>Waypoint Field Log</title><meta name="claude:viewport-fit-sides" content="cover">\n{fonts}\n'
-            f'<style>{tokens}\n{page}{progress.CSS}{SCENES_CSS}</style>')
+            f'<style>{tokens}\n{page}{progress.CSS}{SCENES_CSS}{photos_css(PHOTOS)}</style>')
     app = (f'<div class="app" data-start="{esc(start)}"><div class="shell"><aside class="side"><div class="side-in"><span class="brand"><i></i>Waypoint</span>\n'
            f'<nav class="nav" aria-label="Views">{tabs_html}</nav><span class="gen">Updated {esc(gen)}</span></div></aside>\n'
            f'<main class="main">{views}</main></div></div><script id="data" type="application/json">{payload}</script><script>{JS_EXTRA}</script>')
