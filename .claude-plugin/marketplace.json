@@ -5,7 +5,7 @@
     {
       "name": "wow-waypoint",
       "source": "./",
-      "description": "Track WoW Forever characters from wowf.io: gear summaries, activity log, recaps and plans."
+      "description": "Track WoW Forever characters: gear summaries, activity log, recaps and plans."
     }
   ]
 }
