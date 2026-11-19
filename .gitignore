@@ -1,0 +1,21 @@
+# Character data belongs in your own workspace, never in this repo.
+notes/
+characters.json
+history.jsonl
+latest.json
+activity.md
+journal.md
+plan.md
+summary.md
+profile.json
+profile.md
+dashboard.html
+.health.json
+.last_session
+.announced.json
+.debug/
+
+__pycache__/
+*.pyc
+.DS_Store
+.claude/settings.local.json

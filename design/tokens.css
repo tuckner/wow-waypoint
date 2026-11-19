@@ -1,0 +1,88 @@
+/* Waypoint design system: tokens.
+   One system, three registers:
+     card    : identity (trading-card frames, foil in the class color)
+     survey  : journey (contour paper, routes, waypoints, elevation = level)
+     console : data (monospace readouts, status lights, sparklines)
+   Light is "survey paper", dark is "night survey". Pages inline this file (see design/README.md). */
+
+:root {
+  color-scheme: light;
+  /* ground and surfaces */
+  --paper: #edf0ea;        /* survey paper, a cool green-grey */
+  --sheet: #f8faf5;        /* panels laid on the paper */
+  --sheet-2: #e4e9e1;      /* insets, tracks */
+  --rule: rgba(24, 40, 32, .12);
+  --rule-2: rgba(24, 40, 32, .22);
+  --contour: #c9d3c5;      /* topographic lines */
+  --contour-2: #b3c0ae;    /* index contours (every fifth) */
+  /* ink */
+  --ink: #17201b;
+  --ink-2: #48544d;
+  --ink-3: #75817a;
+  /* roles */
+  --route: #2c6b58;        /* the path you walked */
+  --signal: #df5130;       /* "you are here", the single hot accent */
+  --signal-ink: #ffffff;
+  /* status lights (semantic, separate from the accent) */
+  --ok: #2c9457;
+  --warn: #c98710;
+  --bad: #d1402f;
+  --idle: #9aa59e;
+  /* card stock (cards keep their own dark face in both themes) */
+  --card-face: #121815;
+  --card-ink: #eef3ef;
+  --card-ink-2: #a7b4ad;
+  /* item quality (tuned for light paper) */
+  --q-poor: #7c7c7c; --q-common: #3d3d3d; --q-uncommon: #1b8a06; --q-rare: #0b63c5; --q-epic: #8a32cf; --q-legendary: #c25e00;
+  /* reputation standings */
+  --rep-hostile: #d1402f; --rep-unfriendly: #c96a10; --rep-neutral: #a08a12; --rep-friendly: #2c9457; --rep-revered: #178a72; --rep-exalted: #1a7f99;
+  /* talent trees, in tree order */
+  --tree-1: #3f8f6a; --tree-2: #c98710; --tree-3: #5a64c8;
+
+  /* type */
+  --font-display: "Big Shoulders Display", "Oswald", "Arial Narrow", Impact, sans-serif;
+  --font-body: "Instrument Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --t-hero: clamp(40px, 6vw, 64px);
+  --t-h1: 32px; --t-h2: 22px; --t-h3: 15px;
+  --t-body: 14px; --t-small: 12px; --t-micro: 10.5px;
+  --track-label: .14em;    /* uppercase label tracking */
+
+  /* shape and space */
+  --r-1: 4px; --r-2: 8px; --r-card: 14px;
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 36px;
+  --shadow-card: 0 1px 0 rgba(255,255,255,.06) inset, 0 18px 40px -18px rgba(10, 20, 15, .55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0e1311; --sheet: #151c19; --sheet-2: #1c2521;
+    --rule: rgba(220, 235, 226, .09); --rule-2: rgba(220, 235, 226, .17);
+    --contour: #1e2824; --contour-2: #2a3732;
+    --ink: #e3ebe6; --ink-2: #a5b2ab; --ink-3: #6f7c75;
+    --route: #5fb79c; --signal: #ff6b42; --signal-ink: #1a0c07;
+    --ok: #46b873; --warn: #e0a032; --bad: #ef5b49; --idle: #5d6963;
+    --q-poor: #9d9d9d; --q-common: #e6e6e6; --q-uncommon: #1eff00; --q-rare: #3b93ff; --q-epic: #b66af2; --q-legendary: #ff8000;
+    --rep-hostile: #ef5b49; --rep-unfriendly: #e08a3a; --rep-neutral: #d4bd45; --rep-friendly: #46b873; --rep-revered: #2fc09c; --rep-exalted: #3bb6d6;
+    --tree-1: #5fb79c; --tree-2: #e0a032; --tree-3: #8b93ec;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0e1311; --sheet: #151c19; --sheet-2: #1c2521;
+  --rule: rgba(220, 235, 226, .09); --rule-2: rgba(220, 235, 226, .17);
+  --contour: #1e2824; --contour-2: #2a3732;
+  --ink: #e3ebe6; --ink-2: #a5b2ab; --ink-3: #6f7c75;
+  --route: #5fb79c; --signal: #ff6b42; --signal-ink: #1a0c07;
+  --ok: #46b873; --warn: #e0a032; --bad: #ef5b49; --idle: #5d6963;
+  --q-poor: #9d9d9d; --q-common: #e6e6e6; --q-uncommon: #1eff00; --q-rare: #3b93ff; --q-epic: #b66af2; --q-legendary: #ff8000;
+  --rep-hostile: #ef5b49; --rep-unfriendly: #e08a3a; --rep-neutral: #d4bd45; --rep-friendly: #46b873; --rep-revered: #2fc09c; --rep-exalted: #3bb6d6;
+  --tree-1: #5fb79c; --tree-2: #e0a032; --tree-3: #8b93ec;
+}
+
+/* Class color: set --cc (bright, for card faces and dark) and --ccl (deeper, for light paper) on any element.
+   Components read --c. */
+[style*="--cc"] { --c: var(--ccl); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) [style*="--cc"] { --c: var(--cc); } }
+:root[data-theme="dark"] [style*="--cc"] { --c: var(--cc); }

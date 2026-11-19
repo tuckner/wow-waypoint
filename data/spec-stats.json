@@ -1,0 +1,51 @@
+{
+  "_doc": "Spec detection (talent tree with most points -> spec key) and loot preferences. Stat tags: str agi sta int spi sp heal mp5 ap crit hit def. Armor: cloth leather mail plate; weapons by type.",
+  "classic": {
+    "specs": {
+      "Druid": {"Balance": "balance", "Feral Combat": "feral", "Restoration": "resto"},
+      "Warlock": {"Affliction": "affliction", "Demonology": "demonology", "Destruction": "destruction"},
+      "Mage": {"Arcane": "arcane", "Fire": "fire", "Frost": "frost"},
+      "Priest": {"Discipline": "disc", "Holy": "holy", "Shadow": "shadow"},
+      "Paladin": {"Holy": "holy", "Protection": "prot", "Retribution": "ret"},
+      "Shaman": {"Elemental": "elemental", "Enhancement": "enhancement", "Restoration": "resto"},
+      "Hunter": {"Beast Mastery": "bm", "Marksmanship": "mm", "Survival": "survival"},
+      "Rogue": {"Assassination": "assassination", "Combat": "combat", "Subtlety": "subtlety"},
+      "Warrior": {"Arms": "arms", "Fury": "fury", "Protection": "prot"}
+    },
+    "roles": {
+      "Druid": {"balance": ["dps"], "feral": ["tank", "dps"], "resto": ["heal"], "_": ["tank", "heal", "dps"]},
+      "Warlock": {"_": ["dps"]}, "Mage": {"_": ["dps"]}, "Rogue": {"_": ["dps"]}, "Hunter": {"_": ["dps"]},
+      "Priest": {"shadow": ["dps"], "_": ["heal", "dps"]},
+      "Paladin": {"prot": ["tank"], "ret": ["dps"], "holy": ["heal"], "_": ["tank", "heal", "dps"]},
+      "Shaman": {"elemental": ["dps"], "enhancement": ["dps"], "resto": ["heal"], "_": ["heal", "dps"]},
+      "Warrior": {"prot": ["tank"], "_": ["tank", "dps"]}
+    },
+    "armor": {
+      "Druid": ["cloth", "leather"], "Rogue": ["cloth", "leather"], "Mage": ["cloth"], "Priest": ["cloth"], "Warlock": ["cloth"],
+      "Hunter": ["cloth", "leather", "mail"], "Shaman": ["cloth", "leather", "mail"],
+      "Warrior": ["cloth", "leather", "mail", "plate"], "Paladin": ["cloth", "leather", "mail", "plate"]
+    },
+    "weapons": {
+      "Druid": ["staff", "mace", "dagger", "fist", "2h-mace"], "Rogue": ["dagger", "sword", "mace", "fist", "bow", "gun", "crossbow", "thrown"],
+      "Mage": ["staff", "sword", "dagger", "wand"], "Priest": ["staff", "mace", "dagger", "wand"], "Warlock": ["staff", "sword", "dagger", "wand"],
+      "Hunter": ["axe", "sword", "dagger", "fist", "polearm", "staff", "2h-axe", "2h-sword", "bow", "gun", "crossbow"],
+      "Shaman": ["axe", "mace", "dagger", "fist", "staff", "2h-axe", "2h-mace", "shield"],
+      "Warrior": ["axe", "sword", "mace", "dagger", "fist", "polearm", "staff", "2h-axe", "2h-sword", "2h-mace", "shield", "bow", "gun", "crossbow", "thrown"],
+      "Paladin": ["axe", "sword", "mace", "polearm", "2h-axe", "2h-sword", "2h-mace", "shield"]
+    },
+    "wants": {
+      "feral": {"want": ["agi", "str", "sta", "ap", "crit", "hit", "def"], "avoid": ["int", "spi", "sp", "heal", "mp5"]},
+      "resto": {"want": ["int", "spi", "heal", "mp5", "sta"], "avoid": ["agi", "str", "ap", "def"]},
+      "balance": {"want": ["int", "sp", "crit", "hit", "sta", "spi"], "avoid": ["agi", "str", "ap", "def"]},
+      "holy": {"want": ["int", "spi", "heal", "mp5", "sta"], "avoid": ["agi", "str", "ap", "def"]},
+      "disc": {"want": ["int", "spi", "heal", "mp5", "sta"], "avoid": ["agi", "str", "ap", "def"]},
+      "shadow": {"want": ["int", "sp", "sta", "spi", "hit"], "avoid": ["agi", "str", "ap", "def"]},
+      "_caster": {"want": ["int", "sp", "sta", "crit", "hit", "spi"], "avoid": ["agi", "str", "ap", "def"]},
+      "_physical": {"want": ["agi", "str", "sta", "ap", "crit", "hit"], "avoid": ["int", "spi", "sp", "heal", "mp5"]},
+      "prot": {"want": ["sta", "def", "str", "agi"], "avoid": ["int", "spi", "sp", "heal", "mp5"]},
+      "elemental": {"want": ["int", "sp", "crit", "sta", "mp5"], "avoid": ["agi", "str", "def"]},
+      "enhancement": {"want": ["str", "agi", "ap", "crit", "hit", "sta", "int"], "avoid": ["spi", "sp", "heal"]}
+    },
+    "classKind": {"Mage": "_caster", "Warlock": "_caster", "Priest": "_caster", "Rogue": "_physical", "Hunter": "_physical", "Warrior": "_physical", "Druid": "_physical", "Paladin": "_physical", "Shaman": "_physical"}
+  }
+}

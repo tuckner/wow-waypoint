@@ -1,0 +1,11 @@
+{
+  "name": "wow-waypoint",
+  "owner": { "name": "wow-waypoint" },
+  "plugins": [
+    {
+      "name": "wow-waypoint",
+      "source": "./",
+      "description": "Track WoW Forever characters from wowf.io: gear summaries, activity log, recaps and plans."
+    }
+  ]
+}

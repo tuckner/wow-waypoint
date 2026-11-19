@@ -1,0 +1,18 @@
+{
+  "_doc": "Which armory site each game version uses. A character can override with \"source\": \"<id>\" in characters.json. source null = not supported yet.",
+  "versions": {
+    "forever":     {"label": "WoW Forever", "ruleset": "classic", "source": "wowfio", "realmTypes": ["PvE", "PvP", "RP"]},
+    "era":         {"label": "Classic Era", "ruleset": "classic", "source": null, "realmTypes": ["Normal", "PvP", "RP"]},
+    "hardcore":    {"label": "Classic Hardcore", "ruleset": "classic", "source": null, "realmTypes": ["Hardcore", "Self-Found"]},
+    "sod":         {"label": "Season of Discovery", "ruleset": "classic", "source": null, "realmTypes": ["Normal", "PvP", "RP"]},
+    "progression": {"label": "Classic progression (Cata/MoP Classic)", "ruleset": "progression", "source": null, "realmTypes": ["Normal", "PvP", "RP"]},
+    "retail":      {"label": "Retail", "ruleset": "retail", "source": null, "realmTypes": ["Normal", "RP"]}
+  },
+  "sources": {
+    "wowfio": {"label": "wowf.io", "url": "https://wowf.io/en/players/{region}/{slug}", "regions": ["us", "eu"], "note": "updates when the character logs out"}
+  },
+  "_candidates": {
+    "retail": "raider.io public API (no key) or Blizzard profile API (client id + secret)",
+    "era/hardcore/sod/progression": "Blizzard Classic profile API (client id + secret) or a public armory site"
+  }
+}

@@ -1,0 +1,20 @@
+name: Release Please
+
+# Keeps an open release PR built from Conventional Commit titles (feat:, fix:, feat!:).
+# Merging that PR bumps .claude-plugin/plugin.json and CHANGELOG.md, tags vX.Y.Z and creates a GitHub Release.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

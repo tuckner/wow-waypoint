@@ -1,0 +1,78 @@
+{
+  "_doc": "Level unlocks by ruleset. kind: talent|spell|quest|pet|mount|armor|profession. verify=true means WoW Forever may differ from Classic.",
+  "classic": {
+    "all": [
+      {"level": 10, "what": "First talent point", "kind": "talent"},
+      {"level": 40, "what": "Apprentice Riding + first mount (save gold)", "kind": "mount", "verify": true},
+      {"level": 60, "what": "Epic mount", "kind": "mount", "verify": true}
+    ],
+    "Druid": [
+      {"level": 10, "what": "Bear Form (class quest)", "kind": "quest"},
+      {"level": 14, "what": "Bash, Cure Poison", "kind": "spell"},
+      {"level": 16, "what": "Aquatic Form (class quest)", "kind": "quest"},
+      {"level": 18, "what": "Hibernate", "kind": "spell"},
+      {"level": 20, "what": "Cat Form, Rebirth", "kind": "spell"},
+      {"level": 24, "what": "Remove Curse", "kind": "spell"},
+      {"level": 26, "what": "Abolish Poison", "kind": "spell"},
+      {"level": 30, "what": "Travel Form", "kind": "spell"},
+      {"level": 40, "what": "Dire Bear Form, Innervate", "kind": "spell"}
+    ],
+    "Warlock": [
+      {"level": 10, "what": "Voidwalker (class quest)", "kind": "pet"},
+      {"level": 20, "what": "Succubus (class quest), Ritual of Summoning", "kind": "pet"},
+      {"level": 28, "what": "Banish", "kind": "spell"},
+      {"level": 30, "what": "Felhunter (class quest)", "kind": "pet"},
+      {"level": 40, "what": "Felsteed (warlock mount)", "kind": "mount", "verify": true},
+      {"level": 50, "what": "Inferno (class quest)", "kind": "pet"},
+      {"level": 60, "what": "Dreadsteed (class quest)", "kind": "mount"}
+    ],
+    "Hunter": [
+      {"level": 10, "what": "Tame a pet (class quest)", "kind": "pet"},
+      {"level": 20, "what": "Aspect of the Cheetah, Freezing Trap", "kind": "spell"},
+      {"level": 30, "what": "Feign Death", "kind": "spell"},
+      {"level": 40, "what": "Mail armor", "kind": "armor"}
+    ],
+    "Warrior": [
+      {"level": 10, "what": "Defensive Stance (class quest)", "kind": "quest"},
+      {"level": 30, "what": "Berserker Stance (class quest); Whirlwind weapon quest", "kind": "quest"},
+      {"level": 40, "what": "Plate armor", "kind": "armor"}
+    ],
+    "Paladin": [
+      {"level": 12, "what": "Redemption (class quest)", "kind": "quest"},
+      {"level": 40, "what": "Warhorse (class mount), plate armor", "kind": "mount", "verify": true},
+      {"level": 42, "what": "Cleanse", "kind": "spell"},
+      {"level": 60, "what": "Charger (class quest)", "kind": "mount"}
+    ],
+    "Shaman": [
+      {"level": 4, "what": "Earth totem (class quest)", "kind": "quest"},
+      {"level": 10, "what": "Fire totem (class quest)", "kind": "quest"},
+      {"level": 20, "what": "Water totem (class quest), Ghost Wolf", "kind": "quest"},
+      {"level": 30, "what": "Air totem (class quest)", "kind": "quest"},
+      {"level": 40, "what": "Mail armor", "kind": "armor"}
+    ],
+    "Mage": [
+      {"level": 20, "what": "Teleports to your capital", "kind": "spell"},
+      {"level": 24, "what": "Counterspell", "kind": "spell"},
+      {"level": 40, "what": "Portals", "kind": "spell"}
+    ],
+    "Rogue": [
+      {"level": 16, "what": "Lockpicking (class quest)", "kind": "quest"},
+      {"level": 20, "what": "Poisons (class quest)", "kind": "quest"},
+      {"level": 34, "what": "Blind", "kind": "spell"}
+    ],
+    "Priest": [
+      {"level": 20, "what": "Shackle Undead; racial spells", "kind": "spell"},
+      {"level": 32, "what": "Abolish Disease", "kind": "spell"}
+    ],
+    "professionTiers": [
+      {"tier": "Journeyman", "max": 150, "level": 10, "skill": 50},
+      {"tier": "Expert", "max": 225, "level": 20, "skill": 125},
+      {"tier": "Artisan", "max": 300, "level": 35, "skill": 200}
+    ],
+    "professionNotes": {
+      "Cooking": {"Expert": "Expert Cookbook from a cooking supply vendor", "Artisan": "Artisan cooking quest (Dustwallow Marsh)"},
+      "First Aid": {"Expert": "Expert First Aid book (vendor)", "Artisan": "Triage quest (Theramore / Hammerfall)"},
+      "Fishing": {"Expert": "Expert Fishing book (vendor)", "Artisan": "Nat Pagle's quest (Dustwallow Marsh)"}
+    }
+  }
+}

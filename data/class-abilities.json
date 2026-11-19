@@ -1,0 +1,49 @@
+{
+  "_doc": "What each class can act on, by tag. Each ability: spell, level (trained), optional talent (talentRanks key), optional role (only shown for that role). Used by /instance briefings.",
+  "classic": {
+    "Druid": {
+      "dispel": {"curse": [{"spell": "Remove Curse", "level": 24}], "poison": [{"spell": "Abolish Poison", "level": 26}, {"spell": "Cure Poison", "level": 14}]},
+      "interrupt": [{"spell": "Feral Charge (bear)", "level": 20, "talent": "feral_charge"}, {"spell": "Bash (bear, stun)", "level": 14}],
+      "cc": {"beast": [{"spell": "Hibernate", "level": 18}], "dragonkin": [{"spell": "Hibernate", "level": 18}]},
+      "utility": {"battle-res": [{"spell": "Rebirth", "level": 20}], "mana": [{"spell": "Innervate", "level": 40}]}
+    },
+    "Mage": {
+      "dispel": {"curse": [{"spell": "Remove Lesser Curse", "level": 18}]},
+      "interrupt": [{"spell": "Counterspell", "level": 24}],
+      "cc": {"beast": [{"spell": "Polymorph", "level": 8}], "humanoid": [{"spell": "Polymorph", "level": 8}]}
+    },
+    "Priest": {
+      "dispel": {"magic": [{"spell": "Dispel Magic", "level": 18}], "disease": [{"spell": "Abolish Disease", "level": 32}, {"spell": "Cure Disease", "level": 14}]},
+      "interrupt": [{"spell": "Silence", "level": 30, "talent": "silence"}],
+      "cc": {"undead": [{"spell": "Shackle Undead", "level": 20}]},
+      "utility": {"fear": [{"spell": "Fear Ward (Dwarf only in Classic)", "level": 20, "verify": true}]}
+    },
+    "Paladin": {
+      "dispel": {"magic": [{"spell": "Cleanse", "level": 42}], "poison": [{"spell": "Cleanse", "level": 42}, {"spell": "Purify", "level": 8}], "disease": [{"spell": "Cleanse", "level": 42}, {"spell": "Purify", "level": 8}]},
+      "interrupt": [{"spell": "Hammer of Justice (stun)", "level": 8}],
+      "cc": {"undead": [{"spell": "Turn Undead", "level": 24}]}
+    },
+    "Shaman": {
+      "dispel": {"poison": [{"spell": "Poison Cleansing Totem", "level": 22}, {"spell": "Cure Poison", "level": 16}], "disease": [{"spell": "Disease Cleansing Totem", "level": 38}, {"spell": "Cure Disease", "level": 22}]},
+      "interrupt": [{"spell": "Earth Shock", "level": 4}],
+      "utility": {"fear": [{"spell": "Tremor Totem", "level": 18}], "purge": [{"spell": "Purge", "level": 12}]}
+    },
+    "Warlock": {
+      "dispel": {"magic": [{"spell": "Felhunter: Devour Magic", "level": 30}]},
+      "interrupt": [{"spell": "Felhunter: Spell Lock", "level": 36}],
+      "cc": {"demon": [{"spell": "Banish", "level": 28}], "elemental": [{"spell": "Banish", "level": 28}]}
+    },
+    "Hunter": {
+      "cc": {"beast": [{"spell": "Scare Beast", "level": 14}], "any": [{"spell": "Freezing Trap", "level": 20}]},
+      "utility": {"enrage": [{"spell": "Tranquilizing Shot (book from Molten Core)", "level": 60}]}
+    },
+    "Rogue": {
+      "interrupt": [{"spell": "Kick", "level": 12}],
+      "cc": {"humanoid": [{"spell": "Sap (out of combat)", "level": 10}], "any": [{"spell": "Blind", "level": 34}]}
+    },
+    "Warrior": {
+      "interrupt": [{"spell": "Pummel (Berserker)", "level": 38}, {"spell": "Shield Bash", "level": 12}],
+      "utility": {"fear": [{"spell": "Berserker Rage (yourself)", "level": 32}]}
+    }
+  }
+}

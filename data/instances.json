@@ -1,0 +1,33 @@
+{
+  "_doc": "Instances by ruleset: type, Classic level range, aliases, faction (only for instances inside a faction's city). Notes live in data/instances/<ruleset>/<slug>.md, or your workspace notes/instances/<slug>.md (checked first).",
+  "classic": [
+    {"slug": "ragefire-chasm", "name": "Ragefire Chasm", "type": "dungeon", "min": 13, "max": 18, "faction": "horde", "aliases": ["rfc", "ragefire"]},
+    {"slug": "ruins-of-lordaeron", "name": "Ruins of Lordaeron", "type": "dungeon", "min": 15, "max": 20, "forever": true, "verify": true, "aliases": ["rol", "ruins", "lordaeron"]},
+    {"slug": "wailing-caverns", "name": "Wailing Caverns", "type": "dungeon", "min": 17, "max": 24, "aliases": ["wc", "wailing"]},
+    {"slug": "deadmines", "name": "The Deadmines", "type": "dungeon", "min": 17, "max": 26, "aliases": ["dm", "vc", "deadmines", "the deadmines"]},
+    {"slug": "shadowfang-keep", "name": "Shadowfang Keep", "type": "dungeon", "min": 22, "max": 30, "aliases": ["sfk", "shadowfang"]},
+    {"slug": "blackfathom-deeps", "name": "Blackfathom Deeps", "type": "dungeon", "min": 24, "max": 32, "aliases": ["bfd", "blackfathom"]},
+    {"slug": "stormwind-stockade", "name": "The Stockade", "type": "dungeon", "min": 24, "max": 32, "faction": "alliance", "aliases": ["stocks", "stockade", "stockades"]},
+    {"slug": "gnomeregan", "name": "Gnomeregan", "type": "dungeon", "min": 29, "max": 38, "aliases": ["gnomer", "gnome"]},
+    {"slug": "razorfen-kraul", "name": "Razorfen Kraul", "type": "dungeon", "min": 30, "max": 40, "aliases": ["rfk", "kraul"]},
+    {"slug": "scarlet-monastery", "name": "Scarlet Monastery", "type": "dungeon", "min": 28, "max": 45, "aliases": ["sm", "scarlet", "sm gy", "sm lib", "sm arm", "sm cath", "graveyard", "library", "armory", "cathedral"]},
+    {"slug": "razorfen-downs", "name": "Razorfen Downs", "type": "dungeon", "min": 33, "max": 43, "aliases": ["rfd", "downs"]},
+    {"slug": "uldaman", "name": "Uldaman", "type": "dungeon", "min": 35, "max": 45, "aliases": ["ulda"]},
+    {"slug": "zulfarrak", "name": "Zul'Farrak", "type": "dungeon", "min": 44, "max": 54, "aliases": ["zf", "zul'farrak", "zul farrak"]},
+    {"slug": "maraudon", "name": "Maraudon", "type": "dungeon", "min": 46, "max": 55, "aliases": ["mara"]},
+    {"slug": "sunken-temple", "name": "Temple of Atal'Hakkar", "type": "dungeon", "min": 50, "max": 60, "aliases": ["st", "sunken temple", "atal'hakkar"]},
+    {"slug": "blackrock-depths", "name": "Blackrock Depths", "type": "dungeon", "min": 52, "max": 60, "aliases": ["brd"]},
+    {"slug": "lower-blackrock-spire", "name": "Lower Blackrock Spire", "type": "dungeon", "min": 55, "max": 60, "aliases": ["lbrs"]},
+    {"slug": "upper-blackrock-spire", "name": "Upper Blackrock Spire", "type": "raid", "size": 10, "min": 58, "max": 60, "aliases": ["ubrs"]},
+    {"slug": "dire-maul", "name": "Dire Maul", "type": "dungeon", "min": 55, "max": 60, "aliases": ["dire maul", "dm east", "dm west", "dm north", "dme", "dmw", "dmn"]},
+    {"slug": "stratholme", "name": "Stratholme", "type": "dungeon", "min": 58, "max": 60, "aliases": ["strat"]},
+    {"slug": "scholomance", "name": "Scholomance", "type": "dungeon", "min": 58, "max": 60, "aliases": ["scholo"]},
+    {"slug": "molten-core", "name": "Molten Core", "type": "raid", "size": 40, "min": 60, "max": 60, "aliases": ["mc", "molten"]},
+    {"slug": "onyxias-lair", "name": "Onyxia's Lair", "type": "raid", "size": 40, "min": 60, "max": 60, "aliases": ["ony", "onyxia"]},
+    {"slug": "zulgurub", "name": "Zul'Gurub", "type": "raid", "size": 20, "min": 60, "max": 60, "aliases": ["zg"]},
+    {"slug": "blackwing-lair", "name": "Blackwing Lair", "type": "raid", "size": 40, "min": 60, "max": 60, "aliases": ["bwl"]},
+    {"slug": "ruins-of-ahnqiraj", "name": "Ruins of Ahn'Qiraj", "type": "raid", "size": 20, "min": 60, "max": 60, "aliases": ["aq20", "ruins of aq"]},
+    {"slug": "temple-of-ahnqiraj", "name": "Temple of Ahn'Qiraj", "type": "raid", "size": 40, "min": 60, "max": 60, "aliases": ["aq40", "aq"]},
+    {"slug": "naxxramas", "name": "Naxxramas", "type": "raid", "size": 40, "min": 60, "max": 60, "aliases": ["naxx"]}
+  ]
+}

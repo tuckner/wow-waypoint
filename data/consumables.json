@@ -1,0 +1,29 @@
+{
+  "_doc": "Consumables your own professions can make: profession skill needed, level band where it's useful, tags for which specs want it (any = everyone).",
+  "classic": [
+    {"name": "Healing Potion", "profession": "Alchemy", "skill": 110, "from": 12, "to": 30, "for": ["any"]},
+    {"name": "Greater Healing Potion", "profession": "Alchemy", "skill": 155, "from": 21, "to": 45, "for": ["any"]},
+    {"name": "Superior Healing Potion", "profession": "Alchemy", "skill": 215, "from": 35, "to": 55, "for": ["any"]},
+    {"name": "Major Healing Potion", "profession": "Alchemy", "skill": 275, "from": 45, "to": 60, "for": ["any"]},
+    {"name": "Lesser Mana Potion", "profession": "Alchemy", "skill": 120, "from": 14, "to": 30, "for": ["int"]},
+    {"name": "Mana Potion", "profession": "Alchemy", "skill": 160, "from": 22, "to": 40, "for": ["int"]},
+    {"name": "Greater Mana Potion", "profession": "Alchemy", "skill": 205, "from": 31, "to": 50, "for": ["int"]},
+    {"name": "Superior Mana Potion", "profession": "Alchemy", "skill": 260, "from": 41, "to": 60, "for": ["int"]},
+    {"name": "Elixir of Minor Agility", "profession": "Alchemy", "skill": 50, "from": 2, "to": 25, "for": ["agi"]},
+    {"name": "Elixir of Agility", "profession": "Alchemy", "skill": 185, "from": 27, "to": 45, "for": ["agi"]},
+    {"name": "Elixir of Greater Agility", "profession": "Alchemy", "skill": 240, "from": 38, "to": 60, "for": ["agi"]},
+    {"name": "Elixir of the Mongoose", "profession": "Alchemy", "skill": 280, "from": 46, "to": 60, "for": ["agi"]},
+    {"name": "Elixir of Fortitude", "profession": "Alchemy", "skill": 175, "from": 25, "to": 50, "for": ["sta"]},
+    {"name": "Elixir of Greater Intellect", "profession": "Alchemy", "skill": 235, "from": 37, "to": 60, "for": ["int"]},
+    {"name": "Free Action Potion", "profession": "Alchemy", "skill": 150, "from": 20, "to": 60, "for": ["any"]},
+    {"name": "Fire Protection Potion", "profession": "Alchemy", "skill": 165, "from": 28, "to": 60, "for": ["any"]},
+    {"name": "Greater Fire Protection Potion", "profession": "Alchemy", "skill": 290, "from": 48, "to": 60, "for": ["any"]},
+    {"name": "Wool Bandage / Heavy Wool Bandage", "profession": "First Aid", "skill": 80, "from": 10, "to": 30, "for": ["any"]},
+    {"name": "Silk / Heavy Silk Bandage", "profession": "First Aid", "skill": 150, "from": 20, "to": 40, "for": ["any"]},
+    {"name": "Mageweave / Heavy Mageweave Bandage", "profession": "First Aid", "skill": 210, "from": 30, "to": 50, "for": ["any"]},
+    {"name": "Runecloth / Heavy Runecloth Bandage", "profession": "First Aid", "skill": 260, "from": 40, "to": 60, "for": ["any"]},
+    {"name": "Well Fed food (Stamina/Spirit) from your recipes", "profession": "Cooking", "skill": 75, "from": 10, "to": 60, "for": ["any"]},
+    {"name": "Sharpening stones / weightstones", "profession": "Blacksmithing", "skill": 25, "from": 1, "to": 60, "for": ["str", "agi"]},
+    {"name": "Armor kits", "profession": "Leatherworking", "skill": 1, "from": 1, "to": 60, "for": ["any"]}
+  ]
+}
