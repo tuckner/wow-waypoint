@@ -106,6 +106,36 @@ class TestHome(Workspace):
         self.assertFalse(core.session_opted_in(None))
 
 
+    def run_cli(self, *args):
+        env = {**os.environ, "XDG_CONFIG_HOME": str(self.ws / ".config"), "WOWCHAR_HOME": str(self.ws)}
+        return subprocess.run([sys.executable, str(REPO / "scripts" / "wowchar.py"), *args],
+                              capture_output=True, text=True, env=env, cwd=self.ws)
+
+    def test_claude_md_is_created_but_never_overwritten(self):
+        cm = self.ws / "CLAUDE.md"
+        out = self.run_cli("install-claude-md", "--version", "forever")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn("Game version: WoW Forever", cm.read_text())
+        again = cm.read_text()
+        self.assertEqual(self.run_cli("install-claude-md").returncode, 0)
+        self.assertEqual(cm.read_text(), again)  # ours already: untouched
+
+    def test_someone_elses_claude_md_is_kept(self):
+        cm = self.ws / "CLAUDE.md"
+        cm.write_text("# My project\n\nI love WoW but this is my file.\n")
+        out = self.run_cli("install-claude-md")
+        self.assertEqual(out.returncode, 1)
+        self.assertEqual(cm.read_text(), "# My project\n\nI love WoW but this is my file.\n")
+        out = self.run_cli("install-claude-md", "--append")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        text = cm.read_text()
+        self.assertTrue(text.startswith("# My project"))
+        self.assertIn("wow-waypoint:begin", text)
+        self.assertEqual((self.ws / "CLAUDE.md.bak").read_text(), "# My project\n\nI love WoW but this is my file.\n")
+        self.run_cli("install-claude-md", "--append")
+        self.assertEqual(cm.read_text().count("wow-waypoint:begin"), 1)  # no second copy
+
+
 # ---------- 1. doctor / parsing ----------
 
 class TestParse(unittest.TestCase):

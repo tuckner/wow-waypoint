@@ -27,6 +27,8 @@ Views
                                    (--user: ~/.claude/settings.json, so it shows in every folder)
 Setup
   setup-status                     what /wow-waypoint:init has set up so far
+  install-claude-md [--version KEY] [--append]   write the workspace CLAUDE.md; never overwrites an existing one
+                                   (--append adds our sections after the user's own text, keeping a .bak)
   home | home set <folder> [--announce home|everywhere] | home announce <mode>
                                    where notes live, remembered per user so Claude Code can start anywhere.
                                    announce: home (default) = WoW context only in sessions started in the notes folder
@@ -787,7 +789,7 @@ def setup_status():
         "announce": core.announce_mode(),
         "suggested_home": str(Path.home() / "wow-notes"),
         "inside_repo": core.ROOT == core.KIT or core.KIT in core.ROOT.parents,
-        "claude_md": "missing" if not cm.exists() else ("ok" if "WoW" in cm.read_text() else "exists (not a WoW workspace file; offer to merge)"),
+        "claude_md": claude_md_state(cm),
         "characters": [f"{c['name']} ({core.version_of(c)}{', main' if c.get('main') else ''}{', roles ' + '/'.join(c['roles']) if c.get('roles') else ', no roles'})" for c in core.owned(chars)],
         "friends": [c["name"] for c in core.watched(chars)],
         "profile": "missing" if not prof else {"missing": [k for k in wanted if k not in prof]},
@@ -814,6 +816,46 @@ def cmd_sets(args):
         print("No set seen yet for:", ", ".join(missing))
 
 
+MD_BEGIN, MD_END = "<!-- wow-waypoint:begin -->", "<!-- wow-waypoint:end -->"
+
+
+def claude_md_state(cm):
+    """missing | ok (ours: marker, or an older file that starts with a '# WoW' heading) | exists (someone else's)."""
+    if not cm.exists():
+        return "missing"
+    text = cm.read_text(errors="replace")
+    if MD_BEGIN in text or text.lstrip().startswith("# WoW"):
+        return "ok"
+    return "exists (not ours; never overwrite: install-claude-md --append adds our sections at the end)"
+
+
+def cmd_install_claude_md(args):
+    """install-claude-md [--version KEY] [--append]: write the workspace CLAUDE.md. Never overwrites an existing file."""
+    cm = core.ROOT / "CLAUDE.md"
+    core.guard(cm)
+    key = opt(args, "--version") or (core.load_profile() or {}).get("version")
+    label = (core.data("sources").get("versions", {}).get(key) or {}).get("label") if key else None
+    body = (core.KIT / "templates" / "CLAUDE.md").read_text()
+    if label:
+        body = re.sub(r"\*\*Game version: [^*]*\*\*", f"**Game version: {label}**", body, count=1)
+    block = f"{MD_BEGIN}\n{body.rstrip()}\n{MD_END}\n"
+    state = claude_md_state(cm)
+    if state == "missing":
+        cm.write_text(block)
+        print(f"created {cm}")
+    elif state == "ok":
+        print(f"{cm} already has the WoW workspace rules; left unchanged")
+    elif "--append" not in args:
+        print(f"{cm} already exists and isn't a WoW workspace file. Not touching it. "
+              "Ask the user; with their OK, re-run with --append to add the WoW sections at the end (their text is kept).")
+        sys.exit(1)
+    else:
+        backup = cm.with_name("CLAUDE.md.bak")
+        backup.write_text(cm.read_text())
+        cm.write_text(cm.read_text().rstrip() + "\n\n" + block)
+        print(f"appended the WoW sections to {cm} (original saved as {backup.name})")
+
+
 def cmd_setup_status(_):
     print(json.dumps(setup_status(), indent=2))
 
@@ -822,7 +864,7 @@ def main():
     cmds = {"update": cmd_update, "add": cmd_add, "set": cmd_set, "list": cmd_list, "where": cmd_where, "diff": cmd_diff,
             "gear": cmd_gear, "sets": cmd_sets, "due": cmd_due, "milestones": cmd_milestones, "doctor": cmd_doctor, "log": cmd_log, "pending": cmd_pending,
             "chats": cmd_chats, "party": cmd_party, "brief": cmd_brief, "dashboard": cmd_dashboard, "statusline": cmd_statusline,
-            "install-statusline": cmd_install_statusline, "profile": cmd_profile, "setup-status": cmd_setup_status, "focus": cmd_focus, "main": cmd_main, "home": cmd_home, "session": cmd_session}
+            "install-statusline": cmd_install_statusline, "profile": cmd_profile, "setup-status": cmd_setup_status, "focus": cmd_focus, "main": cmd_main, "home": cmd_home, "session": cmd_session, "install-claude-md": cmd_install_claude_md}
     if len(sys.argv) < 2 or sys.argv[1] not in cmds:
         sys.exit(__doc__)
     cmds[sys.argv[1]](sys.argv[2:])

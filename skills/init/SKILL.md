@@ -20,7 +20,10 @@ Claude Code can be started in any folder; the notes live in one place. One `AskU
 Then run `wowchar home set "<folder>"`. It creates `<folder>/notes/` and remembers the folder in `~/.config/wow-waypoint/config.json`. Say in one line where notes will live, and that WoW context only loads in sessions started in that folder (other projects stay WoW-free; snapshots still refresh quietly). Don't ask about scope. Only if the user asks for it elsewhere: one other session → `wowchar session on --session <id>`; every session → `wowchar home announce everywhere`.
 
 ## 2. Workspace rules
-If `claude_md` is `missing`, copy the `template` path from setup-status to `<workspace>/CLAUDE.md` (the notes folder from step 1b, not necessarily the current folder), filling in the version line once the version is known (step 3). If a non-WoW CLAUDE.md exists, offer to append the template's sections instead of overwriting. Sessions started in that folder load these Q&A rules; sessions started elsewhere still get the essentials from the session-start hook.
+Once the version is known (step 3), run `wowchar install-claude-md --version <key>` in the notes folder. Never write or copy CLAUDE.md yourself.
+- `claude_md` is `missing`: it creates the file.
+- `ok`: already ours, nothing to do.
+- `exists`: someone's own CLAUDE.md is there, and the command refuses to touch it. Ask in one `AskUserQuestion`: "This folder already has a CLAUDE.md. Add the WoW rules at the end of it (your text stays, a .bak copy is kept)?" Options: "Add at the end (Recommended)", "Leave it alone". On yes, re-run with `--append`. On no, skip: the session-start hook still gives the essentials.
 
 ## 3. Game version (ask first, on its own)
 One `AskUserQuestion`: "Which version of WoW do you play?" Options: WoW Forever, Classic Era / Hardcore, Season of Discovery, Retail (the user can type "a mix" or Cata/MoP Classic under Other).
