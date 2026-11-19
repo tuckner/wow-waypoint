@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.6.0...wow-waypoint-v0.7.0) (2026-11-19)
+
+
+### Features
+
+* **init:** never overwrite an existing CLAUDE.md ([c93ec29](https://github.com/tuckner/wow-waypoint/commit/c93ec29b0bfe793d905500f58719ace2428e490b))
+
 ## [0.6.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.5.0...wow-waypoint-v0.6.0) (2026-11-19)
 
 
