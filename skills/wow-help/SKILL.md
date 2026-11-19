@@ -1,7 +1,7 @@
 ---
 name: wow-help
 description: Explain what the wow-waypoint plugin can do — every command and feature, how they fit together, and what to try next given what's already set up. Use when the user asks for help with the WoW tracker, "what can you do", "how does this work", "what commands are there", or "/wow-help <topic>".
-argument-hint: "[topic: setup | tracking | log | milestones | instance | plan | recap | party | dashboard | statusline | doctor | versions | data | commands]"
+argument-hint: "[topic: setup | tracking | log | milestones | instance | macro | plan | recap | party | dashboard | statusline | doctor | versions | data | commands]"
 ---
 
 # wow-waypoint help
@@ -30,6 +30,9 @@ argument-hint: "[topic: setup | tracking | log | milestones | instance | plan | 
 
 **Before a dungeon or raid**
 - `/instance <name>` (e.g. `/instance sfk`, `/instance mc`): a briefing for *your* class, level and role. It covers what you dispel and of which type, what you interrupt and with which spell, what you can CC, where to stand, raid assignments, attunements, resist gear, consumables your professions make, and loot for your spec. If it has no notes for that instance, or they're old, it researches them first and saves them for next time.
+
+**While questing**
+- `/macro`: in-game macros for the quests you're on. Press one to target the nearest live quest mob, rare or NPC; it marks it with a skull and plays a sound. Name the mobs, or say `/macro current` to build them from what you've been doing. It can't find ground objects like crates or herbs.
 
 **Planning and looking back**
 - `/plan`: next session's to-do list, a leveling route, gear targets for your weakest slots, and profession and training goals, shaped by your playstyle and time budget.

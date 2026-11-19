@@ -45,6 +45,8 @@ It asks where to save your notes: the folder you're in, `~/wow-notes`, or any fo
 
 👥 **`/party`: you and your friends.** Who's ahead, what they've been up to, and which dungeons fit everyone.
 
+🎯 **`/macro`: find that mob.** In-game macros that target the nearest live quest mob, rare or NPC, mark it with a skull and play a sound. One press per scan.
+
 ❓ **`/wow-help`: lost?** Shows everything it can do.
 
 **It also works quietly in the background:**
