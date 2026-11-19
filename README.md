@@ -27,7 +27,7 @@ When it asks where to install, pick **user** to have it in every folder. Pick **
 /wow-init
 ```
 
-It asks where to save your notes (a folder like `~/wow-notes` works well), then about your characters, how you like to play and who you play with. After that you're set. 🎉 Start Claude Code anywhere and it finds your notes. A good first thing to try is `/plan`.
+It asks where to save your notes: the folder you're in, `~/wow-notes`, or any folder you choose. Then it asks about your characters, how you like to play and who you play with. After that you're set. 🎉 Start Claude Code anywhere and it finds your notes. A good first thing to try is `/plan`.
 
 > 🗂️ Want WoW out of the way while you work on other things? `/wow-init` can limit it to sessions started in your notes folder.
 

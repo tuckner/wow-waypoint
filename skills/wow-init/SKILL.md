@@ -16,7 +16,7 @@ Run `wowchar setup-status` (JSON).
 
 ## 1b. Where to keep notes (first run only)
 Claude Code can be started in any folder; the notes live in one place and are found from everywhere. One `AskUserQuestion` with two questions:
-- **"Where should your WoW notes be saved?"** Options: `suggested_home` from setup-status (e.g. `~/wow-notes`, recommended), "This folder (<workspace>)" (leave it out when `inside_repo` is true), and Other for a path they type (a cloud-synced folder like iCloud Drive or Dropbox works too).
+- **"Where should your WoW notes be saved?"** Options, in this order: "This folder (<workspace>) (Recommended)" first, then `suggested_home` from setup-status (e.g. `~/wow-notes`) as the easy alternative, and Other for a path they type (a cloud-synced folder like iCloud Drive or Dropbox works too). When `inside_repo` is true, leave out "This folder" and mark `suggested_home` as Recommended instead.
 - **"Show WoW help in every Claude Code session, or only when you start Claude Code in your notes folder?"** Options: "Every session (Recommended)": character updates, milestones and the activity log work wherever you are. "Only in the notes folder": other projects stay WoW-free, and snapshots still refresh quietly.
 
 Then run `wowchar home set "<folder>" --announce everywhere|home`. It creates `<folder>/notes/` and remembers the folder in `~/.config/wow-waypoint/config.json`. Every later command in this session finds it automatically. Say in one line where notes will live. If they picked "every session" and the plugin was installed for this project only, mention that `/plugin` can switch it to user scope so it loads in every folder.
