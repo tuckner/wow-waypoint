@@ -8,7 +8,7 @@
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/wowchar.py\" update --quiet --hook 2>&1 || true",
             "timeout": 45,
-            "statusMessage": "Updating WoW character snapshots from wowf.io..."
+            "statusMessage": "Updating WoW character snapshots..."
           }
         ]
       }

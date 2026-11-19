@@ -80,7 +80,7 @@ Your notes stay in your folder.
 
 ## 🔒 Your data stays with you
 
-Everything about you (characters, journal, plans, dashboard) is saved in the notes folder you picked, under `notes/`. A small file at `~/.config/wow-waypoint/config.json` remembers where that folder is. It only reads public information: your characters' pages on wowf.io, item details from Wowhead, and game images. It never sends your notes anywhere.
+Everything about you (characters, journal, plans, dashboard) is saved in the notes folder you picked, under `notes/`. A small file at `~/.config/wow-waypoint/config.json` remembers where that folder is. It only reads public information: your characters' armory pages, item details from Wowhead, and game images. It never sends your notes anywhere.
 
 ---
 

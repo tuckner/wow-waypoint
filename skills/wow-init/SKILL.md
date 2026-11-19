@@ -34,8 +34,8 @@ One `AskUserQuestion`: "Which version of WoW do you play?" Options: WoW Forever,
 "What are your characters' names (first and last, as on the armory)? Main first."
 
 ## 5. Round 1 (one AskUserQuestion, at most 4 questions)
-- **Region**: US / EU (wowf.io needs it: `/players/<region>/<first-last>`)
-- **Realm type**: the options from data/sources.json `realmTypes` for their version (e.g. Forever: PvE / PvP / RP). Skip this if the first fetch in step 6 returns it, since wowf.io reports it.
+- **Region**: US / EU (the armory site needs it to find the character)
+- **Realm type**: the options from data/sources.json `realmTypes` for their version (e.g. Forever: PvE / PvP / RP). Skip this if the first fetch in step 6 returns it, since the armory site reports it.
 - **Playstyle** (multiSelect): Relaxed, Optimized / speed, Lore-driven, Role-play (they can type completionist, gold-making or PvP under Other)
 - **Time per week**: under 5h / 5–15h / 15h+
 
@@ -43,7 +43,7 @@ Save the answers: `wowchar profile set region=us realmType=PvP playstyle=relaxed
 
 ## 6. Add and confirm each character
 `wowchar add "<First Last>" --region <r> [--version <v>] [--main]` (main = the first one named). Read back what it prints ("Brightmane Hoof: level 28 Tauren Druid, PvP realm. That's you?").
-- 404: try the other region, and remind them wowf.io only knows a character after its first logout.
+- 404: try the other region, and remind them the armory only knows a character after its first logout.
 - Unsupported version: the add saves the entry without a snapshot. That's fine.
 - If the fetch reports a realm type, save it: `profile set realmType=<value>`.
 
@@ -59,7 +59,7 @@ One question per character whose class can do more than one role (multiSelect; o
 Save: `profile set goals=... answerStyle=brief spoilers=avoid recapVoice=light`. For free-text goals ("60 by January"), store the user's words.
 
 ## 9. Friends (free text, optional but encouraged)
-"Want to add friends' characters? They show up in the party view, friend news at session start, and group coverage in /instance briefings (who handles curses, interrupts…). Names, region, and a group name if you like. It's polite to ask them first, even though wowf.io is public."
+"Want to add friends' characters? They show up in the party view, friend news at session start, and group coverage in /instance briefings (who handles curses, interrupts…). Names, region, and a group name if you like. It's polite to ask them first, even though armory pages are public."
 For each: `wowchar add "<Name>" --region <r> --watch [--group <name>]`, confirming like step 6. Also ask: solo / duo-trio / guild, the guild name, and the usual play night → `profile set group.type=duo-trio group.guild=... group.night=Tue`.
 
 ## 10. Status line

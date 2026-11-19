@@ -23,7 +23,7 @@ argument-hint: "[topic: setup | tracking | log | milestones | instance | plan | 
 - `/wow-init`: one-time setup. It asks which version you play (Forever, Classic Era, Hardcore, SoD, Retail…), your characters (it looks each one up so you can confirm), region, roles, playstyle (relaxed, optimized, lore, RP…), goals, how much you play, friends' characters, and whether you want the status line. Run it again any time to change an answer.
 
 **Just play and ask questions**
-- **Automatic snapshots:** at session start your characters are refreshed from the armory site (wowf.io for Forever), at most once a day. It only updates after you log out, so say "I just logged out" to refresh right away.
+- **Automatic snapshots:** at session start your characters are refreshed from the armory site, at most once a day. It only updates after you log out, so say "I just logged out" to refresh right away.
 - **Live activity log:** as you ask questions ("where's the Felhunter quest?", "I got the staff!"), Claude quietly notes what you're doing. When an outcome matters, it asks you about it later.
 - **Milestones:** when you level past an unlock (Travel Form at 30, your mount at 40, a new profession tier), you get a heads-up once.
 - **Gear and progress questions** ("what should I upgrade?", "how's my pace?") are answered from your character's current gear, talents, professions and rep.

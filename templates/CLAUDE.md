@@ -15,7 +15,7 @@ Answer from that version's rules. For WoW Forever, Classic Era, Hardcore and SoD
 
 ## My characters
 
-Tracked by the `wow-waypoint` plugin (set up with `/wow-init`; WoW Forever data comes from wowf.io, which updates when I log out). Per-character files are in `notes/characters/<slug>/`, and my profile is in `notes/profile.md`. Skills: `track` (commands, live activity log), `recap`, `plan`, `instance` (role briefing before a dungeon or raid), `party` (me + friends), `dashboard`.
+Tracked by the `wow-waypoint` plugin (set up with `/wow-init`; character data comes from the armory site, which updates when I log out). Per-character files are in `notes/characters/<slug>/`, and my profile is in `notes/profile.md`. Skills: `track` (commands, live activity log), `recap`, `plan`, `instance` (role briefing before a dungeon or raid), `party` (me + friends), `dashboard`.
 
 ## Tracking questions (notes/)
 

@@ -7,7 +7,7 @@ argument-hint: "[character name or slug] [since YYYY-MM-DD]"
 # Character recap
 
 1. **Pick the character.** Match `$ARGUMENTS` against `notes/characters/characters.json` (name or slug). If none is given and only one character was played since the last recap, use that one. If it's ambiguous, ask.
-2. **Refresh data:** `python3 "${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py" update --force`. wowf.io only updates on logout; if `lastLogin` in the summary is older than the user implies, say the data may lag.
+2. **Refresh data:** `python3 "${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py" update --force`. The armory site only updates on logout; if `lastLogin` in the summary is older than the user implies, say the data may lag.
 3. **Find the window.** Read `notes/characters/<slug>/journal.md` if it exists. The newest `<!-- recap: DATE -->` marker is the start of the window, unless the user gave a `since` date. If there's no journal, use the first snapshot.
 4. **Get the facts:** `python3 "${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py" diff <slug> --since <date>`, plus `notes/characters/<slug>/summary.md` for current state and pace.
 4a. **Read the live log:** `notes/characters/<slug>/activity.md` holds notes recorded during chats since the last `=== recapped ===` marker, plus answered questions. These are the most reliable chat facts. Use them first.

@@ -3,7 +3,7 @@
 Three registers on one palette: trading cards for identity, a survey map for the journey to 60,
 and console readouts for the numbers. Tokens come from design/tokens.css and are inlined.
 
-Images (Blizzard character renders and avatars from wowf.io, Wowhead item icons, profession icons)
+Images (character renders and avatars, Wowhead item icons, profession icons)
 are fetched once, cached in notes/cache/ and inlined as data URIs, so the page works offline and
 inside a published artifact. Only image URLs go out; no character data leaves this computer.
 """

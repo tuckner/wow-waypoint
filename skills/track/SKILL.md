@@ -9,7 +9,7 @@ argument-hint: "[add \"Character Name\" [--region us]] | [update] | [doctor]"
 `wowchar` below means `python3 "${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py"`. Type the full command each time; don't store it in a shell variable (`W="python3 …"; $W args` fails in zsh, which doesn't split words). The script is also executable, so `"${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py" args` works on macOS and Linux. Data lives in the user's workspace under `notes/` (characters, profile, instance notes), never inside the tracker repo; the script refuses to write there. Run `wowchar where` if unsure which folder is in use. **First-time setup, profile changes or adding friends → the `wow-init` skill. "What can this do?" → `wow-help`.**
 
 ## Commands
-- `update [--force]`: snapshot everyone. Use `--force` when they say they just logged out or changed gear (wowf.io updates on logout).
+- `update [--force]`: snapshot everyone. Use `--force` when they say they just logged out or changed gear (the armory updates on logout).
 - `main [<char>]` (show or change the primary character), `focus <char> --session ID` / `focus --clear` (this session's character; see below), `add "<Name>" [--region us] [--version forever] [--watch] [--group G] [--role tank,dps] [--main]`, `set <char> key=value`, `list`, `where`
 - `gear <char>`: weakest-first, with stats, enchants, durability and resistances
 - `diff <char> --since YYYY-MM-DD`, `milestones <char>` (next 4 levels and profession tier nudges)
