@@ -138,7 +138,7 @@ def board(chars):
         tag = "<span class='tag'>friend</span>" if c["watch"] else ""
         rows.append(
             f"<div class='bd-row' style='--cc:{c['colors'][0]};--ccl:{c['colors'][1]}'>{av}"
-            f"<span class='bd-name'><b>{esc(c['first'])}</b>{tag}<span class='muted'>{esc(c['race'])} {esc(c['class'])}</span></span>"
+            f"<span class='bd-name'><b>{esc(c['name'])}</b>{tag}<span class='muted'>{esc(c['race'])} {esc(c['class'])}</span></span>"
             f"<span class='bd-lv'><b>{c['level']}</b><span class='meter meter-race'><span style='width:{c['level'] / 60 * 100:.1f}%'></span></span></span>"
             f"<span class='bd-n'><span class='lbl'>lv/day</span><b>{rate}</b></span>"
             f"<span class='bd-n'><span class='lbl'>to 60</span><b>{esc(eta)}</b></span>"

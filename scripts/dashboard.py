@@ -193,9 +193,10 @@ def card(ch, link=False):
     sig_html = (f"<div class='sig'><span class='sig-ic q-{esc(sig['quality'])}'>{sig_img}</span>"
                 f"<span class='sig-t'><span class='sig-l'>Signature · ilvl {sig['ilvl']}</span><span class='sig-n cq-{esc(sig['quality'])}'>{esc(sig['name'])}</span></span></div>") if sig else ""
     tag, attrs = ("a", f" href='#{esc(ch['slug'])}' data-goto='{esc(ch['slug'])}'") if link else ("div", "")
+    last = ch["name"][len(ch["first"]):].strip()
     return (f"<{tag} class='card' data-slug='{esc(ch['slug'])}' style='{cvars(ch)}'{attrs} aria-label='{esc(ch['name'])}, level {ch['level']} {esc(spec)} {esc(ch['class'])}'>"
             f"<div class='card-in'><div class='card-top'><span class='gem'>{ch['level']}</span>"
-            f"<span class='cn'>{esc(ch['first'])}</span><span class='cls'>{esc(ch['class'])}</span></div>"
+            f"<span class='cn'><b>{esc(ch['first'])}</b>{f'<small>{esc(last)}</small>' if last else ''}</span><span class='cls'>{esc(ch['class'])}</span></div>"
             f"<div class='window' data-bg='{DEFAULT_SCENE.get(ch['class'], 'glow')}'><div class='scene' aria-hidden='true'></div><div class='glow'></div>{art}{ribbon}</div>"
             f"<div class='plate'><span>{esc(spec)} · {esc(ch['race'])}</span><span class='pips' title='Gear grade'>{pips}</span></div>"
             f"{sig_html}<div class='cstats'>{stats}</div>"
@@ -673,7 +674,7 @@ h1,h2{text-wrap:balance}
 .tab:hover{background:var(--sheet-2);color:var(--ink)}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
 .tab[aria-selected="true"] .lv{color:color-mix(in srgb,var(--paper) 65%,transparent)}
-.tn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tn{flex:1;min-width:0;display:grid;line-height:1.15}.tn>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tn-l{font:500 11px/1.2 var(--font-body);color:var(--ink-3)}.tab[aria-selected="true"] .tn-l{color:color-mix(in srgb,var(--paper) 65%,transparent)}
 .tab .lv{font:500 12px/1 var(--font-mono);color:var(--ink-3)}
 .tab-sub{padding-left:12px;font-weight:500}
 .tab-sub::before{content:"";width:5px;height:5px;border-radius:1px;background:var(--rule-2);flex:none}
@@ -712,7 +713,7 @@ h1,h2{text-wrap:balance}
 .cq-uncommon{color:#1eff00}.cq-rare{color:#4c9dff}.cq-epic{color:#c084fc}.cq-poor{color:#9d9d9d}
 .card-top{display:flex;align-items:center;gap:8px;padding:9px 10px 7px}
 .gem{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--cc);color:#111;font:700 13px/1 var(--font-mono);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
-.cn{font:800 24px/1 var(--font-display);text-transform:uppercase;letter-spacing:.03em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cn{display:grid;flex:1;min-width:0;line-height:1}.cn b,.cn small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cn b{font:800 24px/1 var(--font-display);text-transform:uppercase;letter-spacing:.03em}.cn small{font:700 13px/1.15 var(--font-display);text-transform:uppercase;letter-spacing:.16em;color:var(--card-ink-2);margin-top:2px}
 .cls{font:600 10px/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--cc)}
 .window{position:relative;margin:0 8px;border-radius:6px;overflow:hidden;background:#0a0e0c;isolation:isolate;min-height:120px;
   background-image:repeating-radial-gradient(circle at 30% 120%,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
@@ -1062,9 +1063,8 @@ def scene_picker(ch):
             f"<button type='button' class='save-card' data-slug='{esc(ch['slug'])}'>Save card as image</button></div>")
 
 
-SCENES_CSS = "".join(f"[data-bg='{k}']{{background:{bg};background-size:cover;background-position:center bottom}}" for k, _, bg in SCENES) + """
+SCENES_CSS = "".join(f".window[data-bg='{k}'],.sc-sw[data-bg='{k}']{{background:{bg};background-size:cover;background-position:center bottom}}" for k, _, bg in SCENES) + """
 .window[data-bg]:not([data-bg='glow']) .glow{opacity:.35}
-.window{background-image:none}
 .scenes{display:grid;justify-items:center;gap:6px}
 .sc-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 .sc-b{padding:2px;border-radius:50%;border:2px solid transparent;background:none;cursor:pointer;line-height:0}
@@ -1106,8 +1106,10 @@ def render(group=None, fragment=False):
     else:
         start = next((c["slug"] for c in mine if c["main"]), (mine or chars)[0]["slug"])
         def person(c):
+            last = c["name"][len(c["first"]):].strip()
+            sub_name = f"<span class='tn-l'>{esc(last)}</span>" if last else ""
             return (f"<a class='tab' href='#{esc(c['slug'])}' data-target='{esc(c['slug'])}' style='{cvars(c)}'>"
-                    f"{tab_avatar(c)}<span class='tn'>{esc(c['first'])}</span><span class='lv'>{c['level']}</span></a>")
+                    f"{tab_avatar(c)}<span class='tn'><span class='tn-f'>{esc(c['first'])}</span>{sub_name}</span><span class='lv'>{c['level']}</span></a>")
         groups = [("Heroes", "".join(person(c) for c in mine))]
         groups.append(("Friends", "<a class='tab tab-sub' href='#friends' data-target='friends'><span class='tn'>All friends</span>"
                                   f"<span class='lv'>{len(friends)}</span></a>" + "".join(person(c) for c in friends)))
