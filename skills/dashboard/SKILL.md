@@ -1,5 +1,5 @@
 ---
-name: wow-dashboard
+name: dashboard
 description: Build and open a local HTML dashboard of the user's WoW characters (and watched friends) — level and item level over time, quests per day, pace and rough time to max level, gear by item level, professions, and recent changes. Use when the user asks to see their progress, a chart, a dashboard, or how fast they're leveling.
 argument-hint: "[group name]"
 ---

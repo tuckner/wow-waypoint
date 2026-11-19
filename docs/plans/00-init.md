@@ -1,8 +1,8 @@
-# 0. /wow-init: first-run setup
+# 0. /wow-waypoint:init: first-run setup
 
 **Goal:** one guided conversation the first time someone uses the plugin. It seeds everything the other features need: characters, region and realm, roles, friends, playstyle, and the workspace files and settings. Running it again edits answers instead of starting over.
 
-Named `/wow-init` because Claude Code already has a built-in `/init`. The setup section of the `track` skill moves here; `track` just points to it.
+Plugin skills are namespaced, so this is `/wow-waypoint:init` (it was `/wow-init` before 0.6.0, to avoid Claude Code's built-in `/init`). The setup section of the `track` skill moves here; `track` just points to it.
 
 ## What it collects
 
@@ -24,7 +24,7 @@ Named `/wow-init` because Claude Code already has a built-in `/init`. The setup 
 | Friends' characters (name, region, which group) | free text | optional, encouraged ("makes recaps and party view more fun") | party view, friend news, group coverage in `/instance` |
 | Addons in use (Questie, DBM, Details, …) | free text | optional | answers can refer to what they already see |
 
-## Flow (`skills/wow-init/SKILL.md`)
+## Flow (`skills/init/SKILL.md`)
 1. **Check state:** `wowchar.py setup-status` prints what exists: workspace CLAUDE.md, characters, profile, friends, status line. If everything exists, say so and ask what to change (re-run mode). If setup was partial, resume at the first missing step.
 2. **Folder:** confirm this is the folder to use for WoW notes. It must not be the plugin repo (`guard()` enforces this).
 3. **Workspace rules:** copy `templates/CLAUDE.md` in. If a CLAUDE.md already exists, offer to merge instead of overwriting.
@@ -36,7 +36,7 @@ Named `/wow-init` because Claude Code already has a built-in `/init`. The setup 
 8. **Round 3:** goals (multi-select), answer style, spoilers, recap voice.
 9. **Friends (free text):** "Want to add friends' characters? The party view, friend news and group coverage in `/instance` use them. Names, region, and a group name if you like." Then `add --watch --group`, confirming each like step 6. Mention asking friends first is polite.
 10. **Status line:** offer it (show an example line). On yes, run `install-statusline` (plan 6).
-11. **Finish:** run `update`, write `notes/profile.md`, and reply with a 5-line summary of what's set up, plus suggestions: `/plan` for what to do next, `/instance <name>` before a run, the dashboard. Log `"Started tracking (wow-init)"` for each owned character.
+11. **Finish:** run `update`, write `notes/profile.md`, and reply with a 5-line summary of what's set up, plus suggestions: `/plan` for what to do next, `/instance <name>` before a run, the dashboard. Log `"Started tracking (wow-waypoint:init)"` for each owned character.
 
 Keep it quick: about 4 question rounds and under 3 minutes. Every optional question can be skipped ("Skip" is always an option, or they can pick Other and type).
 
@@ -89,4 +89,4 @@ The version picks two things: the **data source** (where snapshots come from) an
 - Hook output contains the profile line only when a profile exists.
 
 ## Done when
-A fresh folder plus `/wow-init` ends with a tracked character, a profile, friends watched, the status line showing, and `/plan` visibly reflecting the playstyle (e.g. relaxed vs optimized produce different routes).
+A fresh folder plus `/wow-waypoint:init` ends with a tracked character, a profile, friends watched, the status line showing, and `/plan` visibly reflecting the playstyle (e.g. relaxed vs optimized produce different routes).

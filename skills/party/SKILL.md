@@ -1,5 +1,5 @@
 ---
-name: wow-party
+name: party
 description: Friend tracking — the user's characters next to their watched friends, on any realm (no need to actually group up). Who's ahead, what friends have been doing lately, which dungeons fit everyone's levels, and who needs what gear. Use for "how's the group doing", "what has <friend> been up to", "what dungeon should we run", "who needs X", "level race", or adding a friend's character.
 argument-hint: "[--since YYYY-MM-DD] [group name] | add <friend name>"
 ---

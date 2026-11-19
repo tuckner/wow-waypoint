@@ -1,4 +1,4 @@
-"""/wow-instance briefings: tagged instance notes x class ability matrix -> what *you* do.
+"""/wow-waypoint:instance briefings: tagged instance notes x class ability matrix -> what *you* do.
 
 Note format: see data/instances/FORMAT.md. Exit code 2 from cmd_brief = no notes yet.
 """

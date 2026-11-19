@@ -24,30 +24,30 @@ When it asks where to install, pick **user** to have it in every folder. Pick **
 **2. Restart Claude Code** and run:
 
 ```
-/wow-init
+/wow-waypoint:init
 ```
 
-It asks where to save your notes: the folder you're in, `~/wow-notes`, or any folder you choose. Then it asks about your characters, how you like to play and who you play with. After that you're set. 🎉 Start Claude Code anywhere and it finds your notes. A good first thing to try is `/wow-plan`.
+It asks where to save your notes: the folder you're in, `~/wow-notes`, or any folder you choose. Then it asks about your characters, how you like to play and who you play with. After that you're set. 🎉 Start Claude Code anywhere and it finds your notes. A good first thing to try is `/wow-waypoint:plan`.
 
-> 🗂️ Want WoW out of the way while you work on other things? `/wow-init` can limit it to sessions started in your notes folder.
+> 🗂️ Want WoW out of the way while you work on other things? `/wow-waypoint:init` can limit it to sessions started in your notes folder.
 
 ---
 
 ## ✨ What it does
 
-🧭 **`/wow-dashboard`: your adventure at a glance.** A page with a trading card for each character, what to do next, your route to 60, your gear, your friends, and a journal of everything so far.
+🧭 **`/wow-waypoint:dashboard`: your adventure at a glance.** A page with a trading card for each character, what to do next, your route to 60, your gear, your friends, and a journal of everything so far.
 
-🗺️ **`/wow-plan`: what to do next.** Where to level, which dungeons to run, which gear to chase, and what to train, sized to how much time you have.
+🗺️ **`/wow-waypoint:plan`: what to do next.** Where to level, which dungeons to run, which gear to chase, and what to train, sized to how much time you have.
 
-📖 **`/wow-recap`: your story so far.** Turns your recent sessions into a short journal chapter.
+📖 **`/wow-waypoint:recap`: your story so far.** Turns your recent sessions into a short journal chapter.
 
-⚔️ **`/wow-instance <name>`: a briefing before you go in.** What *you* should dispel, interrupt and crowd-control, where to stand, and which loot is for you.
+⚔️ **`/wow-waypoint:instance <name>`: a briefing before you go in.** What *you* should dispel, interrupt and crowd-control, where to stand, and which loot is for you.
 
-👥 **`/wow-party`: you and your friends.** Follow friends' progress on any realm: who's ahead and what they've been up to. If you do play together, it also picks dungeons that fit everyone.
+👥 **`/wow-waypoint:party`: you and your friends.** Follow friends' progress on any realm: who's ahead and what they've been up to. If you do play together, it also picks dungeons that fit everyone.
 
-🎯 **`/wow-macro`: one-button tricks.** In-game macros for your character: find a quest mob or rare, mouseover heals, form plus opener, trinkets, party shortcuts. Plain slash commands, no scripts.
+🎯 **`/wow-waypoint:macro`: one-button tricks.** In-game macros for your character: find a quest mob or rare, mouseover heals, form plus opener, trinkets, party shortcuts. Plain slash commands, no scripts.
 
-❓ **`/wow-help`: lost?** Shows everything it can do.
+❓ **`/wow-waypoint:help`: lost?** Shows everything it can do.
 
 **It also works quietly in the background:**
 - 🔄 Checks your characters when you start a session and calls out milestones ("you hit 30: Travel Form!").
@@ -64,11 +64,11 @@ It asks where to save your notes: the folder you're in, `~/wow-notes`, or any fo
 
 Then restart Claude Code. You can also turn on auto-updates under `/plugin` → **Marketplaces**. See what's new on the [Releases page](https://github.com/tuckner/wow-waypoint/releases).
 
-> 📟 Using the status line? Run `/wow-init` again after an update so it keeps working.
+> 📟 Using the status line? Run `/wow-waypoint:init` again after an update so it keeps working.
 
 ## 🤝 Playing with friends
 
-Your friends can install it the same way and follow each other with `/wow-party`. You don't need to be on the same realm or group up; it's just following each other's progress. Only add someone's character if they're okay with it.
+Your friends can install it the same way and follow each other with `/wow-waypoint:party`. You don't need to be on the same realm or group up; it's just following each other's progress. Only add someone's character if they're okay with it.
 
 ## 🗑️ Removing it
 
@@ -88,7 +88,7 @@ Everything about you (characters, journal, plans, dashboard) is saved in the not
 
 ## 🤝 Contributing
 
-Bug reports and pull requests are welcome. If something about the game is wrong (a spell level, a milestone, a dungeon tip), the facts live in plain files under `data/` and are easy to fix. Tests run with `python3 -m unittest discover -s tests`.
+Bug reports and pull requests are welcome. If something about the game is wrong (a spell level, a milestone, a dungeon tip), the facts live in plain files under `data/` and are easy to fix. Tests run with `python3 -m unittest discover -s tests`. To try your changes live, start Claude Code with `claude --plugin-dir /path/to/wow-waypoint`: it loads the plugin straight from your clone (uninstall the marketplace copy first so it doesn't load twice).
 
 ### 🛡️ Team up in game
 

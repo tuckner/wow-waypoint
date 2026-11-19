@@ -4,7 +4,7 @@ _Written 2026-11-18. **Status: all built in 0.2.0** (see CHANGELOG.md). Kept as 
 
 | # | Plan | Size | Depends on |
 |---|---|---|---|
-| 0 | [/wow-init: first-run setup](00-init.md) | M | none (friends and status line steps light up after 3 and 6) |
+| 0 | [/wow-waypoint:init: first-run setup](00-init.md) | M | none (friends and status line steps light up after 3 and 6) |
 | 1 | [doctor: parse health check](01-doctor.md) | S | none |
 | 2 | [Milestones on level-up](02-milestones.md) | M | none |
 | 3 | [Watched friends, party view and friend progress](03-party.md) | M | 0 |

@@ -498,8 +498,8 @@ class TestDue(Workspace):
         (d / "journal.md").write_text(f"<!-- recap: {(datetime.now() - timedelta(days=4)).strftime('%Y-%m-%d')} -->\n")
         (d / "plan.md").write_text(f"_Plan written {(datetime.now() - timedelta(days=4)).strftime('%Y-%m-%d')} at level 26._\n# x — plan (levels 26 → 30)\n")
         got = dict(wowchar.due(core.find_char("testy-mctest")))
-        self.assertIn("wow-recap", got)
-        self.assertIn("wow-plan", got)
+        self.assertIn("wow-waypoint:recap", got)
+        self.assertIn("wow-waypoint:plan", got)
         self.assertIn("run these yourself", wowchar.due_report({}))
         self.assertEqual(wowchar.due_report({"autoSkills": "off"}), "")
 

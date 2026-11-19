@@ -450,8 +450,8 @@ def up_next(ch):
         return ""
     rows = "".join(f"<li><span class='un-k un-{k.lower()}'>{k}</span><div><b>{title}</b>" + (f"<span>{detail}</span>" if detail else "") + "</div></li>"
                    for k, title, detail in items[:6])
-    src = (f"From your plan ({written}). Run /wow-plan to refresh." if plan else
-           "Suggested from level, gear and your log." + ("" if ch["watch"] else " Run /wow-plan for a full route."))
+    src = (f"From your plan ({written}). Run /wow-waypoint:plan to refresh." if plan else
+           "Suggested from level, gear and your log." + ("" if ch["watch"] else " Run /wow-waypoint:plan for a full route."))
     return (f"<div class='un'><div class='un-h'><span class='lbl'>Up next</span><span class='ch-r'>{esc(src)}</span></div>"
             f"<ol class='un-list'>{rows}</ol></div>")
 
@@ -634,7 +634,7 @@ def binder_view(chars):
     friends = [c for c in chars if c["watch"]]
     if not friends:
         return ("<div class='view' data-view='friends'><header class='vh'><span class='lbl'>Binder</span><h2>Friends</h2></header>"
-                "<div class='console empty'>No friends watched yet. Add one with /wow-party.</div></div>")
+                "<div class='console empty'>No friends watched yet. Add one with /wow-waypoint:party.</div></div>")
     mine = [c for c in chars if not c["watch"]]
     rk = {c["slug"]: core.realm_key(c.get("realmType")) or "unknown" for c in friends}
     counts = {k: sum(v == k for v in rk.values()) for k in core.REALM_TYPES}
@@ -1239,7 +1239,7 @@ def render(group=None, fragment=False):
     mine = [c for c in chars if not c["watch"]]
     friends = [c for c in chars if c["watch"]]
     if not chars:
-        tabs_html, views, start = "", "<div class='view' data-view='none'><div class='console empty'>No tracked characters yet. Run /wow-init.</div></div>", "none"
+        tabs_html, views, start = "", "<div class='view' data-view='none'><div class='console empty'>No tracked characters yet. Run /wow-waypoint:init.</div></div>", "none"
     else:
         start = next((c["slug"] for c in mine if c["main"]), (mine or chars)[0]["slug"])
         def person(c):

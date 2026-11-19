@@ -1,5 +1,5 @@
 ---
-name: wow-plan
+name: plan
 description: Build a next-steps leveling plan for a tracked WoW Forever character — where to quest and which dungeons to run for the next few levels, gear targets per weak slot with sources, profession and training goals, and errands. Use when the user asks what to do next, what to target, a leveling plan, or upgrade goals.
 argument-hint: "[character name or slug] [focus: gear|leveling|professions]"
 ---
@@ -22,7 +22,7 @@ argument-hint: "[character name or slug] [focus: gear|leveling|professions]"
 5. **Write `notes/characters/<slug>/plan.md`**, overwriting the old one but keeping unfinished goals:
 
 ```markdown
-_Plan written 2026-11-18 at level 28. Refresh with /wow-plan when most of it is done._
+_Plan written 2026-11-18 at level 28. Refresh with /wow-waypoint:plan when most of it is done._
 
 # <Name> — plan (levels 28 → 32)
 
@@ -47,4 +47,4 @@ _Plan written 2026-11-18 at level 28. Refresh with /wow-plan when most of it is 
 
 6. **Reply** with the "Next session" list and the top 3 gear targets. Point to plan.md for the rest.
 
-Keep it practical: about one screen, no padding. Before a dungeon on the route, point to `/wow-instance <name>` for the role briefing. Cite links for drop sources and Forever-specific claims.
+Keep it practical: about one screen, no padding. Before a dungeon on the route, point to `/wow-waypoint:instance <name>` for the role briefing. Cite links for drop sources and Forever-specific claims.

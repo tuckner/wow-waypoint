@@ -1,12 +1,12 @@
 ---
-name: wow-track
-description: Run WoW character tracking day to day (armory snapshots, gear summaries, milestones, a live activity log, parse health). Use when the user adds a character, says they just logged out, asks about their own gear, level, progress or professions, or when the tracker's session-start message needs acting on. For first-time setup use wow-init.
+name: track
+description: Run WoW character tracking day to day (armory snapshots, gear summaries, milestones, a live activity log, parse health). Use when the user adds a character, says they just logged out, asks about their own gear, level, progress or professions, or when the tracker's session-start message needs acting on. For first-time setup use wow-waypoint:init.
 argument-hint: "[add \"Character Name\" [--region us]] | [update] | [doctor]"
 ---
 
 # Character tracking
 
-`wowchar` below means `python3 "${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py"`. Type the full command each time; don't store it in a shell variable (`W="python3 …"; $W args` fails in zsh, which doesn't split words). The script is also executable, so `"${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py" args` works on macOS and Linux. Data lives in the user's workspace under `notes/` (characters, profile, instance notes), never inside the tracker repo; the script refuses to write there. Run `wowchar where` if unsure which folder is in use. **First-time setup, profile changes or adding friends → the `wow-init` skill. "What can this do?" → `wow-help`.**
+`wowchar` below means `python3 "${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py"`. Type the full command each time; don't store it in a shell variable (`W="python3 …"; $W args` fails in zsh, which doesn't split words). The script is also executable, so `"${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py" args` works on macOS and Linux. Data lives in the user's workspace under `notes/` (characters, profile, instance notes), never inside the tracker repo; the script refuses to write there. Run `wowchar where` if unsure which folder is in use. **First-time setup, profile changes or adding friends → the `wow-waypoint:init` skill. "What can this do?" → `wow-waypoint:help`.**
 
 ## Commands
 - `update [--force]`: snapshot everyone. Use `--force` when they say they just logged out or changed gear (the armory updates on logout).
@@ -30,8 +30,8 @@ argument-hint: "[add \"Character Name\" [--region us]] | [update] | [doctor]"
 ## Files per character (`notes/characters/<slug>/`)
 - `summary.md` (auto): gear, talents, professions, reps, pace, weak slots, **Upcoming** (next 2 levels' unlocks and profession nudges), change log. **Read it first** for any gear, upgrade or progress question.
 - `activity.md`: the live log written with `log`
-- `journal.md`: from the `wow-recap` skill
-- `plan.md`: from the `wow-plan` skill
+- `journal.md`: from the `wow-waypoint:recap` skill
+- `plan.md`: from the `wow-waypoint:plan` skill
 
 ## Acting on the session-start message
 - **Milestones reached**: open the reply with them, one line each ("You hit 30: Travel Form is trainable"). Once they confirm training, `log` it.

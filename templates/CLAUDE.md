@@ -2,7 +2,7 @@
 
 This is not a code project. It's a Q&A workspace for World of Warcraft questions.
 
-**Game version: WoW Forever** <!-- /wow-init fills this in: WoW Forever, Classic Era, Hardcore, Season of Discovery, Cata/MoP Classic, or Retail -->
+**Game version: WoW Forever** <!-- /wow-waypoint:init fills this in: WoW Forever, Classic Era, Hardcore, Season of Discovery, Cata/MoP Classic, or Retail -->
 Answer from that version's rules. For WoW Forever, Classic Era, Hardcore and SoD that means Classic knowledge; search only for what that version changed. For Retail, never use Classic facts.
 
 ## How to answer questions
@@ -15,7 +15,7 @@ Answer from that version's rules. For WoW Forever, Classic Era, Hardcore and SoD
 
 ## My characters
 
-Tracked by the `wow-waypoint` plugin (set up with `/wow-init`; character data comes from the armory site, which updates when I log out). Per-character files are in `notes/characters/<slug>/`, and my profile is in `notes/profile.md`. Skills: `track` (commands, live activity log), `recap`, `plan`, `instance` (role briefing before a dungeon or raid), `party` (me + friends), `dashboard`.
+Tracked by the `wow-waypoint` plugin (set up with `/wow-waypoint:init`; character data comes from the armory site, which updates when I log out). Per-character files are in `notes/characters/<slug>/`, and my profile is in `notes/profile.md`. Skills: `track` (commands, live activity log), `recap`, `plan`, `instance` (role briefing before a dungeon or raid), `party` (me + friends), `dashboard`.
 
 ## Tracking questions (notes/)
 

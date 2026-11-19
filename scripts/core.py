@@ -2,7 +2,7 @@
 
 Personal data lives in the *workspace* (never in this repo):
   <workspace>/notes/characters/   characters.json, <slug>/..., .health.json, .last_session
-  <workspace>/notes/profile.json  player profile written by /wow-init
+  <workspace>/notes/profile.json  player profile written by /wow-waypoint:init
   <workspace>/notes/instances/    personal instance notes (override the repo's data/instances/)
 """
 import json
@@ -268,7 +268,7 @@ def profile_line(p):
 
 
 def profile_md(p):
-    L = [f"_Written by wow-waypoint from notes/profile.json ({p.get('updated', '')}). Edit with `wowchar.py profile set key=value` or re-run /wow-init._", "", "# Player profile", ""]
+    L = [f"_Written by wow-waypoint from notes/profile.json ({p.get('updated', '')}). Edit with `wowchar.py profile set key=value` or re-run /wow-waypoint:init._", "", "# Player profile", ""]
     for k, v in p.items():
         if k == "updated":
             continue

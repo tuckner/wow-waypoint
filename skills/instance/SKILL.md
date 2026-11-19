@@ -1,6 +1,6 @@
 ---
-name: wow-instance
-description: Role briefing for a WoW dungeon or raid, specific to the user's character — which debuffs they dispel (and of which type), what they interrupt and with which spell, which adds they CC, positioning and threat, raid assignments, attunements, resist gear, consumables and loot for their spec. Use when the user is about to run, or asks about, a dungeon or raid ("/wow-instance SFK", "heading into BFD", "what do I do in MC").
+name: instance
+description: Role briefing for a WoW dungeon or raid, specific to the user's character — which debuffs they dispel (and of which type), what they interrupt and with which spell, which adds they CC, positioning and threat, raid assignments, attunements, resist gear, consumables and loot for their spec. Use when the user is about to run, or asks about, a dungeon or raid ("/wow-waypoint:instance SFK", "heading into BFD", "what do I do in MC").
 argument-hint: "<dungeon or raid name/abbreviation> [character] [tank|heal|dps] [with <friends>]"
 ---
 

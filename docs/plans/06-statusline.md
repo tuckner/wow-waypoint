@@ -3,7 +3,7 @@
 **Goal:** a short always-visible line in Claude Code while you're in your WoW workspace, e.g.
 `Brightmane 28 Druid · iLvl 24 · +2 lvl/7d · next: Travel Form @30 · 3 open ?`
 
-It's a **workspace setting**: `/wow-init` (plan 0) installs it into the workspace's project `.claude/settings.json`, so it shows only in the WoW folder and not in your other projects.
+It's a **workspace setting**: `/wow-waypoint:init` (plan 0) installs it into the workspace's project `.claude/settings.json`, so it shows only in the WoW folder and not in your other projects.
 
 ## Command: `wowchar.py statusline`
 - Reads the status-line JSON from stdin. Use `workspace.project_dir` (fall back to `cwd`) to find the workspace, ignoring env vars, since status-line commands may not get `CLAUDE_PROJECT_DIR`.
@@ -18,7 +18,7 @@ It's a **workspace setting**: `/wow-init` (plan 0) installs it into the workspac
   ```json
   "statusLine": {"type": "command", "command": "python3 \"<resolved script path>\" statusline"}
   ```
-  It uses the script's resolved absolute path, because each friend's plugin install path differs. `/wow-init` re-runs this when the path has changed (e.g. after a plugin update), and `doctor` (plan 1) warns when the configured path no longer exists.
+  It uses the script's resolved absolute path, because each friend's plugin install path differs. `/wow-waypoint:init` re-runs this when the path has changed (e.g. after a plugin update), and `doctor` (plan 1) warns when the configured path no longer exists.
 - If a `statusLine` already exists and isn't ours, don't overwrite it. Show it and offer to chain: the command runs the existing one and appends our segment.
 - First check whether a plugin can provide `statusLine` directly. If it can, use that instead, so nothing has to be written into settings.
 - For the original author's workspace: installed into its project `.claude/settings.json`.

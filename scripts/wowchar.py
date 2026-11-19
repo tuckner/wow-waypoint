@@ -26,7 +26,7 @@ Views
   install-statusline [--chain] [--user]  write the status line into this workspace's .claude/settings.json
                                    (--user: ~/.claude/settings.json, so it shows in every folder)
 Setup
-  setup-status                     what /wow-init has set up so far
+  setup-status                     what /wow-waypoint:init has set up so far
   home | home set <folder> [--announce home|everywhere] | home announce <mode>
                                    where notes live, remembered per user so Claude Code can start anywhere.
                                    announce: home (default) = WoW context only in sessions started in the notes folder
@@ -35,7 +35,7 @@ Setup
 
 Data lives in YOUR workspace (never this repo): $WOWCHAR_HOME, else the project folder or a folder above it that
 already holds notes/characters/, else the remembered home (`home set`), else the project folder. Per character: notes/characters/<slug>/
-  latest.json (normalized snapshot) · history.jsonl · summary.md (generated) · activity.md · journal.md (/wow-recap) · plan.md (/wow-plan)
+  latest.json (normalized snapshot) · history.jsonl · summary.md (generated) · activity.md · journal.md (/wow-waypoint:recap) · plan.md (/wow-waypoint:plan)
 """
 import json
 import re
@@ -89,7 +89,7 @@ def default_char():
     rows = [(c, (core.history(c["slug"], tail=8000) or [{}])[-1]) for c in core.owned()]
     rows = [r for r in rows if r[1]]
     if not rows:
-        sys.exit("no tracked characters with snapshots; run /wow-init or `add` first")
+        sys.exit("no tracked characters with snapshots; run /wow-waypoint:init or `add` first")
     if (p := core.primary([r[0] for r in rows])):
         return p
     return max(rows, key=lambda r: r[1].get("lastLogin") or "")[0]
@@ -253,7 +253,7 @@ def hook_instructions(chars, session_id=None):
                      f"(said so, or a second question in a row), pin it for this session: focus <slug>{sid} (one line to them); "
                      "switch again or focus --clear when they move back to main. Unnamed questions follow the current pin.")
     if watched := core.watched(chars):
-        lines.append(f"- Watched friends ({len(watched)}): " + ", ".join(c["name"] for c in watched) + ". Use `wow-party` to follow them (any realm, grouping not required); never log their activity.")
+        lines.append(f"- Watched friends ({len(watched)}): " + ", ".join(c["name"] for c in watched) + ". Use `wow-waypoint:party` to follow them (any realm, grouping not required); never log their activity.")
     if (pl := core.profile_line(core.load_profile())):
         lines.append("- " + pl)
     lines += [
@@ -262,7 +262,7 @@ def hook_instructions(chars, session_id=None):
         "factual line: log <slug> \"...\". If an outcome that matters is unknown, log it with a leading \"?\" and ask at a natural pause "
         "(at most 1-3 at a time); once answered, rewrite that line in activity.md without the \"?\". Skip pure lookups.",
         "- If the user says they just logged out, run update --force. If they mention a new character, offer to add it.",
-        "- Skills: `wow-help` (feature overview), `wow-track` (commands, rules), `wow-init` (setup), `wow-recap`, `wow-plan`, `wow-instance` (role briefing before a dungeon or raid), `wow-party`, `wow-dashboard`, `wow-macro`.",
+        "- Skills: `wow-waypoint:help` (feature overview), `wow-waypoint:track` (commands, rules), `wow-waypoint:init` (setup), `wow-waypoint:recap`, `wow-waypoint:plan`, `wow-waypoint:instance` (role briefing before a dungeon or raid), `wow-waypoint:party`, `wow-waypoint:dashboard`, `wow-waypoint:macro`.",
     ]
     return "\n".join(lines)
 
@@ -471,7 +471,7 @@ def cmd_log(args):
     text = " ".join(args[1:]).strip()
     a = core.char_dir(c["slug"]) / "activity.md"
     if not a.exists():
-        a.write_text(f"# {c['slug']} — running activity log\n\nOne line per thing learned in chat. `?` = open question to ask; replace with the answer once known. /wow-recap folds these into journal.md.\n\n")
+        a.write_text(f"# {c['slug']} — running activity log\n\nOne line per thing learned in chat. `?` = open question to ask; replace with the answer once known. /wow-waypoint:recap folds these into journal.md.\n\n")
     with a.open("a") as f:
         f.write(f"- {datetime.now().strftime('%Y-%m-%d %H:%M')} {text}\n")
     print(f"logged to {a.relative_to(core.ROOT)}")
@@ -509,16 +509,16 @@ def due(c):
     new_notes = len(core.activity(slug)[(marks[-1] + 1 if marks else 0):]) if new else 0
     if since == "0000-00-00":
         if len(snaps) > 1 or new_notes:
-            out.append(("wow-recap", "no journal yet"))
+            out.append(("wow-waypoint:recap", "no journal yet"))
     else:
         at = next((s for s in snaps if s["at"][:10] >= since), snaps[0])
         days = (today - datetime.strptime(since, "%Y-%m-%d").date()).days
         lv = (cur.get("level") or 0) - (at.get("level") or 0)
         if (days >= RECAP_DAYS or lv >= RECAP_LEVELS) and (new_notes or lv):
-            out.append(("wow-recap", f"{days}d and {lv} level(s) since the last recap ({since})"))
+            out.append(("wow-waypoint:recap", f"{days}d and {lv} level(s) since the last recap ({since})"))
     plan = core.BASE / slug / "plan.md"
     if not plan.exists():
-        out.append(("wow-plan", "no plan yet"))
+        out.append(("wow-waypoint:plan", "no plan yet"))
     else:
         head = plan.read_text()[:400]
         m = re.search(r"Plan written (\d{4}-\d{2}-\d{2}) at level (\d+)", head)
@@ -528,7 +528,7 @@ def due(c):
             lv = (cur.get("level") or 0) - int(m.group(2))
             end = int(r.group(2)) if r else None
             if (end and cur.get("level", 0) >= end) or lv >= PLAN_LEVELS or days >= PLAN_DAYS:
-                out.append(("wow-plan", f"written {m.group(1)} at level {m.group(2)}; now {cur.get('level')}"))
+                out.append(("wow-waypoint:plan", f"written {m.group(1)} at level {m.group(2)}; now {cur.get('level')}"))
     return out
 
 
@@ -554,7 +554,7 @@ def due_report(profile=None):
     if mode == "offer":
         return "Due (offer each in one line, don't run unasked): " + " | ".join(rows)
     return ("Due (run these yourself, no need to ask: say in one line that you're doing it, answer the user's first message, then run "
-            "the skill via the Skill tool; for a wow-plan that's due, run it before answering any 'what next' question): " + " | ".join(rows))
+            "the skill via the Skill tool; for a wow-waypoint:plan that's due, run it before answering any 'what next' question): " + " | ".join(rows))
 
 
 def cmd_due(_):
@@ -768,7 +768,7 @@ def cmd_profile(args):
             k, v = core.parse_assignment(kv)
             core.set_path(p, k, v)
         core.save_profile(p)
-    print(json.dumps(p, indent=2) if p else "no profile yet (run /wow-init, or `profile set key=value`)")
+    print(json.dumps(p, indent=2) if p else "no profile yet (run /wow-waypoint:init, or `profile set key=value`)")
 
 
 def setup_status():
