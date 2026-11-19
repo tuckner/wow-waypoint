@@ -209,9 +209,10 @@ def cmd_update(args):
             print("Friend news (mention in one short line; don't log it): " + " | ".join(news))
     if hook and (d := due_report()):
         print(d)
-    pend = pending_report()
-    if pend:
-        print("Since last recap (open your first reply with a 2–3 line 'last time' summary and ask the open questions):\n" + "\n".join(pend))
+    qs = [f"{c['name']}: " + l[2:] for c in core.owned() for l in core.open_questions(c["slug"])]
+    if qs:
+        print("Open questions (background only; don't summarize past activity or open with them. "
+              "Ask one only when it fits what the user is doing, e.g. they mention that character):\n" + "\n".join("  " + q for q in qs))
 
 
 def hook_session_id():
@@ -248,7 +249,7 @@ def hook_instructions(chars, session_id=None):
                      f"(said so, or a second question in a row), pin it for this session: focus <slug>{sid} (one line to them); "
                      "switch again or focus --clear when they move back to main. Unnamed questions follow the current pin.")
     if watched := core.watched(chars):
-        lines.append(f"- Watched friends ({len(watched)}): " + ", ".join(c["name"] for c in watched) + ". Use `wow-party` for the group; never log their activity.")
+        lines.append(f"- Watched friends ({len(watched)}): " + ", ".join(c["name"] for c in watched) + ". Use `wow-party` to follow them (any realm, grouping not required); never log their activity.")
     if (pl := core.profile_line(core.load_profile())):
         lines.append("- " + pl)
     lines += [
