@@ -90,4 +90,4 @@ Bug reports and pull requests are welcome. If something about the game is wrong 
 
 ### 🛡️ Team up in game
 
-We're recruiting! **&lt;Root Access&gt;** is a Horde guild on **US PvP** in WoW Forever. If you'd like company for leveling, dungeons and raids, come play with us. Whisper any member in game to ask for an invite.
+We're recruiting! **&lt;Root Access&gt;** is a Horde guild on **US PvP** in WoW Forever. If you'd like company for leveling, dungeons and raids, come play with us. **[Open a guild invite request](https://github.com/tuckner/wow-waypoint/issues/new?template=guild-invite.md)** with your character's name and we'll reach out in game.
