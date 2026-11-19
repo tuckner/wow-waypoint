@@ -34,10 +34,16 @@ class Workspace(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.ws = Path(self.tmp.name)
+        self._xdg = os.environ.get("XDG_CONFIG_HOME")
+        os.environ["XDG_CONFIG_HOME"] = str(self.ws / ".config")  # never read the real remembered home
         core.set_root(self.ws)
         core.BASE.mkdir(parents=True)
 
     def tearDown(self):
+        if self._xdg is None:
+            os.environ.pop("XDG_CONFIG_HOME", None)
+        else:
+            os.environ["XDG_CONFIG_HOME"] = self._xdg
         self.tmp.cleanup()
 
     def add(self, slug, snaps, **extra):
@@ -51,6 +57,40 @@ class Workspace(unittest.TestCase):
                   "items": [{"slot": "Chest", "name": "Test Tunic", "ilvl": 24, "quality": 2,
                              "lines": ["+5 Agility", "+4 Fire Resistance", "Durability 10 / 100"]}]}
         (d / "latest.json").write_text(json.dumps(latest))
+
+
+# ---------- 0. where notes live ----------
+
+class TestHome(Workspace):
+    def test_remembered_home_is_used_from_any_folder(self):
+        home = self.ws / "wow-notes"
+        (home / "notes" / "characters").mkdir(parents=True)
+        (home / "notes" / "characters" / "characters.json").write_text("[]")
+        core.write_pointer(home=str(home), announce="home")
+        elsewhere = self.ws / "some-code-project"
+        elsewhere.mkdir()
+        root, how = core.find_workspace(elsewhere, use_env=False, explain=True)
+        self.assertEqual((root, how), (home.resolve(), "home"))
+
+    def test_local_notes_beat_the_remembered_home(self):
+        core.write_pointer(home=str(self.ws / "elsewhere"))
+        (self.ws / "elsewhere").mkdir()
+        local = self.ws / "local"
+        (local / "notes" / "characters").mkdir(parents=True)
+        (local / "notes" / "characters" / "characters.json").write_text("[]")
+        self.assertEqual(core.find_workspace(local / "notes", use_env=False, explain=True), (local.resolve(), "local"))
+
+    def test_home_set_creates_the_folder(self):
+        target = self.ws / "picked"
+        env = {**os.environ, "XDG_CONFIG_HOME": str(self.ws / ".config")}
+        env.pop("WOWCHAR_HOME", None)
+        env.pop("CLAUDE_PROJECT_DIR", None)
+        out = subprocess.run([sys.executable, str(REPO / "scripts" / "wowchar.py"), "home", "set", str(target), "--announce", "home"],
+                             capture_output=True, text=True, env=env, cwd=self.ws)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertTrue((target / "notes" / "characters" / "characters.json").exists())
+        self.assertEqual(core.read_pointer()["home"], str(target.resolve()))
+        self.assertEqual(core.read_pointer()["announce"], "home")
 
 
 # ---------- 1. doctor / parsing ----------

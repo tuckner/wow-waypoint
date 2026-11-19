@@ -10,12 +10,19 @@ argument-hint: "[what to change, e.g. 'add friends' or 'playstyle']"
 
 ## 1. Check state
 Run `wowchar setup-status` (JSON).
-- `inside_repo: true` → stop: this is the plugin's own folder. Ask them to open Claude Code in the folder they want for WoW notes.
-- If characters, profile and statusline are all set up, summarize them in 3 lines and ask what to change (`$ARGUMENTS` may already say). Jump to that step only.
-- If it's partly done, resume at the first missing step. Don't re-ask answered questions.
+- `workspace_found_by` is `local`, `home` or `env`: notes already have a home (`workspace`). If characters, profile and statusline are all set up, summarize them in 3 lines and ask what to change (`$ARGUMENTS` may already say), and jump to that step only. If it's partly done, resume at the first missing step. Don't re-ask answered questions.
+- `workspace_found_by` is `project` or `cwd`: there are no notes yet, so start at step 1b.
+- `inside_repo: true` and no notes yet → don't save anything here (it's the plugin's own folder); step 1b must pick another folder.
+
+## 1b. Where to keep notes (first run only)
+Claude Code can be started in any folder; the notes live in one place and are found from everywhere. One `AskUserQuestion` with two questions:
+- **"Where should your WoW notes be saved?"** Options: `suggested_home` from setup-status (e.g. `~/wow-notes`, recommended), "This folder (<workspace>)" (leave it out when `inside_repo` is true), and Other for a path they type (a cloud-synced folder like iCloud Drive or Dropbox works too).
+- **"Show WoW help in every Claude Code session, or only when you start Claude Code in your notes folder?"** Options: "Every session (Recommended)": character updates, milestones and the activity log work wherever you are. "Only in the notes folder": other projects stay WoW-free, and snapshots still refresh quietly.
+
+Then run `wowchar home set "<folder>" --announce everywhere|home`. It creates `<folder>/notes/` and remembers the folder in `~/.config/wow-waypoint/config.json`. Every later command in this session finds it automatically. Say in one line where notes will live. If they picked "every session" and the plugin was installed for this project only, mention that `/plugin` can switch it to user scope so it loads in every folder.
 
 ## 2. Workspace rules
-If `claude_md` is `missing`, copy the `template` path from setup-status to `./CLAUDE.md`, filling in the version line once the version is known (step 3). If a non-WoW CLAUDE.md exists, offer to append the template's sections instead of overwriting.
+If `claude_md` is `missing`, copy the `template` path from setup-status to `<workspace>/CLAUDE.md` (the notes folder from step 1b, not necessarily the current folder), filling in the version line once the version is known (step 3). If a non-WoW CLAUDE.md exists, offer to append the template's sections instead of overwriting. Sessions started in that folder load these Q&A rules; sessions started elsewhere still get the essentials from the session-start hook.
 
 ## 3. Game version (ask first, on its own)
 One `AskUserQuestion`: "Which version of WoW do you play?" Options: WoW Forever, Classic Era / Hardcore, Season of Discovery, Retail (the user can type "a mix" or Cata/MoP Classic under Other).
@@ -56,7 +63,7 @@ Save: `profile set goals=... answerStyle=brief spoilers=avoid recapVoice=light`.
 For each: `wowchar add "<Name>" --region <r> --watch [--group <name>]`, confirming like step 6. Also ask: solo / duo-trio / guild, the guild name, and the usual play night → `profile set group.type=duo-trio group.guild=... group.night=Tue`.
 
 ## 10. Status line
-Show an example (`Brightmane 28 Druid · iLvl 24 · next: Travel Form @30 · 3 open ?`) and ask whether they want it in this folder. On yes: `wowchar install-statusline`. If it reports an existing status line, show it and offer `install-statusline --chain` (keeps theirs, appends ours).
+Show an example (`Brightmane 28 Druid · iLvl 24 · next: Travel Form @30 · 3 open ?`) and ask whether they want it. If they chose "every session" in step 1b, offer it everywhere: `wowchar install-statusline --user` (writes `~/.claude/settings.json`). Otherwise put it in the notes folder only: `wowchar install-statusline`. If it reports an existing status line, show it and offer `install-statusline --chain` (keeps theirs, appends ours).
 
 ## 11. Optional extras (one quick free-text question, skippable)
 "Any addons you use (Questie, DBM, Details…) or anything else I should know?" → `profile set addons=Questie,DBM`.

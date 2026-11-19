@@ -12,28 +12,24 @@ Tell it who you play, and it keeps an eye on your characters: what you're wearin
 
 You'll need [Claude Code](https://claude.com/claude-code) and Python 3. Python is already on Macs and most Linux machines; on Windows, grab it from [python.org](https://www.python.org/downloads/).
 
-**1. Make a folder for your WoW notes** and open Claude Code there:
-
-```sh
-mkdir -p ~/wow && cd ~/wow && claude
-```
-
-**2. Install wow-waypoint:**
+**1. Install wow-waypoint** from Claude Code, in any folder:
 
 ```
 /plugin marketplace add tuckner/wow-waypoint
 /plugin install wow-waypoint@wow-waypoint
 ```
 
-If it asks where to install, pick **project** so it stays in this folder.
+When it asks where to install, pick **user** to have it in every folder. Pick **project** to keep it to one folder.
 
-**3. Restart Claude Code** in the same folder and run:
+**2. Restart Claude Code** and run:
 
 ```
 /wow-init
 ```
 
-It asks about your characters, how you like to play and who you play with, and then you're set. 🎉 A good first thing to try is `/plan`.
+It asks where to save your notes (a folder like `~/wow-notes` works well), then about your characters, how you like to play and who you play with. After that you're set. 🎉 Start Claude Code anywhere and it finds your notes. A good first thing to try is `/plan`.
+
+> 🗂️ Want WoW out of the way while you work on other things? `/wow-init` can limit it to sessions started in your notes folder.
 
 ---
 
@@ -84,7 +80,7 @@ Your notes stay in your folder.
 
 ## 🔒 Your data stays with you
 
-Everything about you (characters, journal, plans, dashboard) is saved in your own folder, under `notes/`. It only reads public information: your characters' pages on wowf.io, item details from Wowhead, and game images. It never sends your notes anywhere.
+Everything about you (characters, journal, plans, dashboard) is saved in the notes folder you picked, under `notes/`. A small file at `~/.config/wow-waypoint/config.json` remembers where that folder is. It only reads public information: your characters' pages on wowf.io, item details from Wowhead, and game images. It never sends your notes anywhere.
 
 ---
 

@@ -23,18 +23,59 @@ QUALITY = {0: "poor", 1: "common", 2: "uncommon", 3: "rare", 4: "epic", 5: "lege
 LIST_FIELDS = {"playstyle", "goals", "addons", "roles"}
 
 ROOT = BASE = CONFIG = None
+SOURCE = None  # how ROOT was found: env, local, home, project or cwd
+ANNOUNCE = ("everywhere", "home")  # where the session hook speaks up
 
 
-def find_workspace(start=None, use_env=True):
-    if use_env:
-        for var in ("WOWCHAR_HOME", "CLAUDE_PROJECT_DIR"):
-            if os.environ.get(var):
-                return Path(os.environ[var]).expanduser().resolve()
-    cwd = Path(start or Path.cwd()).resolve()
-    for d in (cwd, *cwd.parents):
-        if (d / "notes" / "characters" / "characters.json").exists():
-            return d
-    return cwd
+def pointer_path():
+    """Per-user file that remembers the notes folder, so Claude Code can start in any folder."""
+    base = os.environ.get("XDG_CONFIG_HOME") or str(Path.home() / ".config")
+    return Path(base).expanduser() / "wow-waypoint" / "config.json"
+
+
+def read_pointer():
+    try:
+        d = json.loads(pointer_path().read_text())
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def write_pointer(**fields):
+    d = {**read_pointer(), **{k: v for k, v in fields.items() if v is not None}}
+    p = pointer_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(d, indent=2) + "\n")
+    return d
+
+
+def has_notes(d):
+    return (d / "notes" / "characters" / "characters.json").exists()
+
+
+def find_workspace(start=None, use_env=True, explain=False):
+    """WOWCHAR_HOME, else a folder (or parent) that already has notes, else the remembered home, else the project folder."""
+    def found(path, how):
+        return (Path(path).expanduser().resolve(), how) if explain else Path(path).expanduser().resolve()
+    if use_env and os.environ.get("WOWCHAR_HOME"):
+        return found(os.environ["WOWCHAR_HOME"], "env")
+    starts = [Path(start or Path.cwd()).resolve()]
+    if use_env and os.environ.get("CLAUDE_PROJECT_DIR"):
+        starts.insert(0, Path(os.environ["CLAUDE_PROJECT_DIR"]).expanduser().resolve())
+    for s in starts:
+        for d in (s, *s.parents):
+            if has_notes(d):
+                return found(d, "local")
+    home = read_pointer().get("home")
+    if home and Path(home).expanduser().is_dir():
+        return found(home, "home")
+    return found(starts[0], "project" if use_env and os.environ.get("CLAUDE_PROJECT_DIR") else "cwd")
+
+
+def session_in_home():
+    """True when this session was started inside the notes folder."""
+    here = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path.cwd()).resolve()
+    return here == ROOT or ROOT in here.parents
 
 
 def set_root(path):
@@ -44,7 +85,8 @@ def set_root(path):
     CONFIG = BASE / "characters.json"
 
 
-set_root(find_workspace())
+ROOT_PATH, SOURCE = find_workspace(explain=True)
+set_root(ROOT_PATH)
 
 
 def now():

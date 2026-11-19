@@ -23,13 +23,16 @@ Views
   statusline [--all] [--ascii] [--prefix-cmd CMD]   reads Claude Code's status JSON on stdin
   focus <char> [--session ID] | focus --clear   this session's character: pins the status line (to one session with
                                    --session) without touching main; --clear goes back to main
-  install-statusline [--chain]     write the status line into this workspace's .claude/settings.json
+  install-statusline [--chain] [--user]  write the status line into this workspace's .claude/settings.json
+                                   (--user: ~/.claude/settings.json, so it shows in every folder)
 Setup
   setup-status                     what /wow-init has set up so far
+  home | home set <folder> [--announce everywhere|home] | home announce <mode>
+                                   where notes live, remembered per user so Claude Code can start anywhere
   profile | profile set key=value ...   player profile (version, realmType, playstyle=a,b, hoursPerWeek, goals=a,b, ...)
 
-Data lives in YOUR workspace (never this repo): $WOWCHAR_HOME, else $CLAUDE_PROJECT_DIR, else the nearest
-folder above cwd holding notes/characters/, else cwd. Per character: notes/characters/<slug>/
+Data lives in YOUR workspace (never this repo): $WOWCHAR_HOME, else the project folder or a folder above it that
+already holds notes/characters/, else the remembered home (`home set`), else the project folder. Per character: notes/characters/<slug>/
   latest.json (normalized snapshot) · history.jsonl · summary.md (generated) · activity.md · journal.md (/recap) · plan.md (/plan)
 """
 import json
@@ -160,6 +163,8 @@ def cmd_update(args):
     chars = core.load_config()
     if hook and not chars:
         return  # plugin installed but nothing tracked in this folder: stay silent
+    if hook and core.SOURCE == "home" and core.read_pointer().get("announce") == "home" and not core.session_in_home():
+        quiet, hook = True, False  # still refresh snapshots, but say nothing outside the notes folder
     report = []
     for c in chars:
         h = core.history(c["slug"], tail=8000)
@@ -602,7 +607,7 @@ def cmd_statusline(args):
 
 
 def cmd_install_statusline(args):
-    path = core.ROOT / ".claude" / "settings.json"
+    path = (Path.home() / ".claude" / "settings.json") if "--user" in args else core.ROOT / ".claude" / "settings.json"
     core.guard(path)
     settings = core.read_json(path, {}) if path.exists() else {}
     if settings is None:
@@ -618,10 +623,40 @@ def cmd_install_statusline(args):
         ours += " --prefix-cmd " + existing.split("--prefix-cmd", 1)[1].strip()
     settings["statusLine"] = {"type": "command", "command": ours}
     core.write_text(path, json.dumps(settings, indent=2) + "\n")
-    print(f"status line installed in {path}: {ours}\nIt shows from the next Claude Code session in this folder.")
+    where = "in every folder" if "--user" in args else "in this folder"
+    print(f"status line installed in {path}: {ours}\nIt shows from the next Claude Code session {where}.")
 
 
 # ---------- commands: setup ----------
+
+def cmd_home(args):
+    """home: show where notes live. home set <path> [--announce everywhere|home]. home announce <mode>."""
+    pos = positional(args, with_values=("--announce",))
+    announce = opt(args, "--announce")
+    if announce and announce not in core.ANNOUNCE:
+        sys.exit(f"--announce must be one of: {', '.join(core.ANNOUNCE)}")
+    if pos[:1] == ["set"]:
+        if len(pos) < 2:
+            sys.exit('usage: home set <folder> [--announce everywhere|home]')
+        home = Path(pos[1]).expanduser().resolve()
+        core.guard(home / "notes")
+        (home / "notes" / "characters").mkdir(parents=True, exist_ok=True)
+        cfg = home / "notes" / "characters" / "characters.json"
+        if not cfg.exists():
+            cfg.write_text("[]\n")
+        d = core.write_pointer(home=str(home), announce=announce or core.read_pointer().get("announce") or "everywhere")
+        print(f"notes folder set to {home} (remembered in {core.pointer_path()}); WoW context shows {'in every session' if d['announce'] == 'everywhere' else 'only in sessions started in that folder'}.")
+        return
+    if pos[:1] == ["announce"]:
+        if len(pos) < 2 or pos[1] not in core.ANNOUNCE:
+            sys.exit(f"usage: home announce {'|'.join(core.ANNOUNCE)}")
+        core.write_pointer(announce=pos[1])
+        print(f"WoW context now shows {'in every session' if pos[1] == 'everywhere' else 'only in sessions started in the notes folder'}.")
+        return
+    ptr = core.read_pointer()
+    print(json.dumps({"workspace": str(core.ROOT), "found_by": core.SOURCE, "remembered_home": ptr.get("home"),
+                      "announce": ptr.get("announce", "everywhere"), "pointer_file": str(core.pointer_path())}, indent=2))
+
 
 def cmd_profile(args):
     p = core.load_profile() or {}
@@ -641,8 +676,13 @@ def setup_status():
     sl = (settings.get("statusLine") or {}).get("command", "")
     wanted = ["version", "region", "realmType", "playstyle", "hoursPerWeek", "goals", "answerStyle", "spoilers", "recapVoice", "group"]
     vers = core.data("sources").get("versions", {})
+    ptr = core.read_pointer()
     return {
         "workspace": str(core.ROOT),
+        "workspace_found_by": core.SOURCE,
+        "remembered_home": ptr.get("home"),
+        "announce": ptr.get("announce"),
+        "suggested_home": str(Path.home() / "wow-notes"),
         "inside_repo": core.ROOT == core.KIT or core.KIT in core.ROOT.parents,
         "claude_md": "missing" if not cm.exists() else ("ok" if "WoW" in cm.read_text() else "exists (not a WoW workspace file; offer to merge)"),
         "characters": [f"{c['name']} ({core.version_of(c)}{', main' if c.get('main') else ''}{', roles ' + '/'.join(c['roles']) if c.get('roles') else ', no roles'})" for c in core.owned(chars)],
@@ -664,7 +704,7 @@ def main():
     cmds = {"update": cmd_update, "add": cmd_add, "set": cmd_set, "list": cmd_list, "where": cmd_where, "diff": cmd_diff,
             "gear": cmd_gear, "milestones": cmd_milestones, "doctor": cmd_doctor, "log": cmd_log, "pending": cmd_pending,
             "chats": cmd_chats, "party": cmd_party, "brief": cmd_brief, "dashboard": cmd_dashboard, "statusline": cmd_statusline,
-            "install-statusline": cmd_install_statusline, "profile": cmd_profile, "setup-status": cmd_setup_status, "focus": cmd_focus, "main": cmd_main}
+            "install-statusline": cmd_install_statusline, "profile": cmd_profile, "setup-status": cmd_setup_status, "focus": cmd_focus, "main": cmd_main, "home": cmd_home}
     if len(sys.argv) < 2 or sys.argv[1] not in cmds:
         sys.exit(__doc__)
     cmds[sys.argv[1]](sys.argv[2:])
