@@ -1,4 +1,4 @@
-# 🧭 wow-waypoint
+# 🧭 WoW Waypoint - Claude Skill
 
 **Your WoW characters, tracked and coached, right inside Claude Code.**
 
