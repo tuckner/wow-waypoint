@@ -1,6 +1,6 @@
 # Researching an instance
 
-How `/instance` builds or refreshes a note when none exists, or the one it has is stale. The goal isn't a full guide. It's the facts a role briefing needs, each tagged so the script can match it against a character's abilities, and each traceable to a source. Character fit (level, gear, abilities, group) comes from the snapshot at briefing time, so never write it into the note.
+How `/wow-instance` builds or refreshes a note when none exists, or the one it has is stale. The goal isn't a full guide. It's the facts a role briefing needs, each tagged so the script can match it against a character's abilities, and each traceable to a source. Character fit (level, gear, abilities, group) comes from the snapshot at briefing time, so never write it into the note.
 
 Output: `<workspace>/notes/instances/<slug>.md` in the format from `FORMAT.md`, with a `## Sources` section at the end.
 

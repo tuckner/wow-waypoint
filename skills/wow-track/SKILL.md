@@ -1,5 +1,5 @@
 ---
-name: track
+name: wow-track
 description: Run WoW character tracking day to day (armory snapshots, gear summaries, milestones, a live activity log, parse health). Use when the user adds a character, says they just logged out, asks about their own gear, level, progress or professions, or when the tracker's session-start message needs acting on. For first-time setup use wow-init.
 argument-hint: "[add \"Character Name\" [--region us]] | [update] | [doctor]"
 ---
@@ -14,7 +14,9 @@ argument-hint: "[add \"Character Name\" [--region us]] | [update] | [doctor]"
 - `gear <char>`: weakest-first, with stats, enchants, durability and resistances
 - `diff <char> --since YYYY-MM-DD`, `milestones <char>` (next 4 levels and profession tier nudges)
 - `log <char> "..."` (a leading `?` marks an open question), `pending`, `chats --since DATE`
-- `party [--since DATE]`, `brief <instance>`, `dashboard --open`, `statusline`, `install-statusline`
+- `sets <char>`: the gear set last worn for each role (healer vs tank + DPS…). The armory only sees the set worn at logout, so each logout records one set. summary.md and the dashboard show them too.
+- `due`: recaps and plans that are due (recap: 3+ days or 2+ levels since the last one; plan: missing, 3+ levels old, past its level range, or 10+ days old), for the main and any character that levelled this week. The session hook prints it. Profile `autoSkills`: `auto` (default, run them yourself without asking), `offer` (offer in one line) or `off`.
+- `party [--since DATE] [--realm pvp,pve,rp,rppvp]`, `brief <instance>`, `dashboard --open`, `statusline`, `install-statusline`
 - `doctor [<char>]`: checks the armory page still parses, step by step, and saves the page on failure
 - `profile`, `profile set key=value`, `setup-status`
 
@@ -27,8 +29,8 @@ argument-hint: "[add \"Character Name\" [--region us]] | [update] | [doctor]"
 ## Files per character (`notes/characters/<slug>/`)
 - `summary.md` (auto): gear, talents, professions, reps, pace, weak slots, **Upcoming** (next 2 levels' unlocks and profession nudges), change log. **Read it first** for any gear, upgrade or progress question.
 - `activity.md`: the live log written with `log`
-- `journal.md`: from the `recap` skill
-- `plan.md`: from the `plan` skill
+- `journal.md`: from the `wow-recap` skill
+- `plan.md`: from the `wow-plan` skill
 
 ## Acting on the session-start message
 - **Milestones reached**: open the reply with them, one line each ("You hit 30: Travel Form is trainable"). Once they confirm training, `log` it.

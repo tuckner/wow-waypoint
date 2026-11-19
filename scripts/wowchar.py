@@ -8,7 +8,7 @@ Characters
   set <char> key=value ...         edit a character entry (roles=tank,dps  main=true  version=era  group=...)
   list | where
   update [--force] [--quiet] [--hook]   snapshot everyone (throttled to once per 20h each); --hook adds Claude's standing instructions
-  gear <char> | diff <char> [--since DATE] | milestones <char>
+  gear <char> | sets <char> | due | diff <char> [--since DATE] | milestones <char>
   doctor [<char>]                  check that the armory site still parses; saves the page on failure
 Activity
   log <char> "text"                append to <char>/activity.md ("?" prefix = open question; "=== recapped ===" closes a recap window)
@@ -33,7 +33,7 @@ Setup
 
 Data lives in YOUR workspace (never this repo): $WOWCHAR_HOME, else the project folder or a folder above it that
 already holds notes/characters/, else the remembered home (`home set`), else the project folder. Per character: notes/characters/<slug>/
-  latest.json (normalized snapshot) · history.jsonl · summary.md (generated) · activity.md · journal.md (/recap) · plan.md (/plan)
+  latest.json (normalized snapshot) · history.jsonl · summary.md (generated) · activity.md · journal.md (/wow-recap) · plan.md (/wow-plan)
 """
 import json
 import re
@@ -46,6 +46,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import core  # noqa: E402
+import gearsets  # noqa: E402
 import milestones  # noqa: E402
 import sources  # noqa: E402
 
@@ -60,7 +61,7 @@ def opt(args, name, default=None):
     return default
 
 
-def positional(args, with_values=("--region", "--version", "--group", "--role", "--source", "--since", "--out", "--prefix-cmd", "--session")):
+def positional(args, with_values=("--region", "--version", "--group", "--role", "--source", "--since", "--out", "--prefix-cmd", "--session", "--realm")):
     out, skip = [], False
     for i, a in enumerate(args):
         if skip:
@@ -128,6 +129,7 @@ def write_summary(slug, char=None):
           "- Upgrade candidates: " + ", ".join(f"{s} ({i['name']}, iLvl {i['ilvl']})" for s, i in weakest)]
     up = milestones.upcoming(cur.get("class"), cur["level"], 2, version)
     nudges = milestones.profession_nudges(cur.get("professions"), cur["level"], version)
+    L += gearsets.summary_lines(slug, char)
     L += ["", "## Upcoming (next 2 levels)"]
     L += [f"- {e['level']}: {e['what']}" + (" (verify on Forever)" if e.get("verify") else "") for e in up] or ["- nothing listed"]
     L += [f"- {x['what']}" for x in nudges]
@@ -141,6 +143,7 @@ def store_snapshot(char, norm):
     slug = char["slug"]
     d = core.char_dir(slug)
     (d / "latest.json").write_text(json.dumps(norm, indent=1))
+    gearsets.remember_items(slug, norm)
     snap = core.compact(norm)
     prev = (core.history(slug) or [None])[-1]
     with (d / "history.jsonl").open("a") as f:
@@ -204,6 +207,8 @@ def cmd_update(args):
         news = friend_news(chars)
         if news:
             print("Friend news (mention in one short line; don't log it): " + " | ".join(news))
+    if hook and (d := due_report()):
+        print(d)
     pend = pending_report()
     if pend:
         print("Since last recap (open your first reply with a 2–3 line 'last time' summary and ask the open questions):\n" + "\n".join(pend))
@@ -243,7 +248,7 @@ def hook_instructions(chars, session_id=None):
                      f"(said so, or a second question in a row), pin it for this session: focus <slug>{sid} (one line to them); "
                      "switch again or focus --clear when they move back to main. Unnamed questions follow the current pin.")
     if watched := core.watched(chars):
-        lines.append(f"- Watched friends ({len(watched)}): " + ", ".join(c["name"] for c in watched) + ". Use `party` for the group; never log their activity.")
+        lines.append(f"- Watched friends ({len(watched)}): " + ", ".join(c["name"] for c in watched) + ". Use `wow-party` for the group; never log their activity.")
     if (pl := core.profile_line(core.load_profile())):
         lines.append("- " + pl)
     lines += [
@@ -252,7 +257,7 @@ def hook_instructions(chars, session_id=None):
         "factual line: log <slug> \"...\". If an outcome that matters is unknown, log it with a leading \"?\" and ask at a natural pause "
         "(at most 1-3 at a time); once answered, rewrite that line in activity.md without the \"?\". Skip pure lookups.",
         "- If the user says they just logged out, run update --force. If they mention a new character, offer to add it.",
-        "- Skills: `wow-help` (feature overview), `track` (commands, rules), `wow-init` (setup), `recap`, `plan`, `instance` (role briefing before a dungeon or raid), `party`, `dashboard`.",
+        "- Skills: `wow-help` (feature overview), `wow-track` (commands, rules), `wow-init` (setup), `wow-recap`, `wow-plan`, `wow-instance` (role briefing before a dungeon or raid), `wow-party`, `wow-dashboard`, `wow-macro`.",
     ]
     return "\n".join(lines)
 
@@ -458,7 +463,7 @@ def cmd_log(args):
     text = " ".join(args[1:]).strip()
     a = core.char_dir(c["slug"]) / "activity.md"
     if not a.exists():
-        a.write_text(f"# {c['slug']} — running activity log\n\nOne line per thing learned in chat. `?` = open question to ask; replace with the answer once known. /recap folds these into journal.md.\n\n")
+        a.write_text(f"# {c['slug']} — running activity log\n\nOne line per thing learned in chat. `?` = open question to ask; replace with the answer once known. /wow-recap folds these into journal.md.\n\n")
     with a.open("a") as f:
         f.write(f"- {datetime.now().strftime('%Y-%m-%d %H:%M')} {text}\n")
     print(f"logged to {a.relative_to(core.ROOT)}")
@@ -477,6 +482,75 @@ def pending_report():
                        + "".join("\n  " + l[2:] for l in new[-8:] if l not in qs)
                        + "".join("\n  OPEN QUESTION " + l[2:] for l in qs))
     return out
+
+
+RECAP_DAYS, RECAP_LEVELS, PLAN_LEVELS, PLAN_DAYS = 3, 2, 3, 10
+
+
+def due(c):
+    """Skills that are due for an owned character: [(skill, reason)]."""
+    slug = c["slug"]
+    snaps = core.history(slug)
+    if not snaps:
+        return []
+    cur, out = snaps[-1], []
+    today = datetime.now().date()
+    since = core.last_recap(slug)
+    new = [l for l in core.activity(slug) if l.startswith("- ")]
+    marks = [i for i, l in enumerate(core.activity(slug)) if "=== recapped ===" in l]
+    new_notes = len(core.activity(slug)[(marks[-1] + 1 if marks else 0):]) if new else 0
+    if since == "0000-00-00":
+        if len(snaps) > 1 or new_notes:
+            out.append(("wow-recap", "no journal yet"))
+    else:
+        at = next((s for s in snaps if s["at"][:10] >= since), snaps[0])
+        days = (today - datetime.strptime(since, "%Y-%m-%d").date()).days
+        lv = (cur.get("level") or 0) - (at.get("level") or 0)
+        if (days >= RECAP_DAYS or lv >= RECAP_LEVELS) and (new_notes or lv):
+            out.append(("wow-recap", f"{days}d and {lv} level(s) since the last recap ({since})"))
+    plan = core.BASE / slug / "plan.md"
+    if not plan.exists():
+        out.append(("wow-plan", "no plan yet"))
+    else:
+        head = plan.read_text()[:400]
+        m = re.search(r"Plan written (\d{4}-\d{2}-\d{2}) at level (\d+)", head)
+        r = re.search(r"levels (\d+) → (\d+)", head)
+        if m:
+            days = (today - datetime.strptime(m.group(1), "%Y-%m-%d").date()).days
+            lv = (cur.get("level") or 0) - int(m.group(2))
+            end = int(r.group(2)) if r else None
+            if (end and cur.get("level", 0) >= end) or lv >= PLAN_LEVELS or days >= PLAN_DAYS:
+                out.append(("wow-plan", f"written {m.group(1)} at level {m.group(2)}; now {cur.get('level')}"))
+    return out
+
+
+def active(c, days=7):
+    """Main character, or one that gained a level in the last `days` days. Idle alts never get auto-run skills."""
+    if c.get("main"):
+        return True
+    snaps = core.history(c["slug"])
+    if len(snaps) < 2:
+        return False
+    cutoff = core.parse_time(snaps[-1]["at"]) - timedelta(days=days)
+    old = next((x for x in snaps if core.parse_time(x["at"]) >= cutoff), snaps[0])
+    return (snaps[-1].get("level") or 0) > (old.get("level") or 0)
+
+
+def due_report(profile=None):
+    mode = (profile or core.load_profile() or {}).get("autoSkills", "auto")
+    rows = [f"{c['name']}: {skill} ({why})" for c in core.owned() if active(c) for skill, why in due(c)]
+    if not rows:
+        return ""
+    if mode == "off":
+        return ""
+    if mode == "offer":
+        return "Due (offer each in one line, don't run unasked): " + " | ".join(rows)
+    return ("Due (run these yourself, no need to ask: say in one line that you're doing it, answer the user's first message, then run "
+            "the skill via the Skill tool; for a wow-plan that's due, run it before answering any 'what next' question): " + " | ".join(rows))
+
+
+def cmd_due(_):
+    print(due_report() or "Nothing due.")
 
 
 def cmd_pending(_):
@@ -519,6 +593,8 @@ def instance_window(levels, factions, version="forever"):
 def cmd_party(args):
     group = opt(args, "--group")
     chars = [c for c in core.load_config() if not group or c.get("group") == group or not c.get("watch")]
+    if realms := core.realm_filter(opt(args, "--realm")):
+        chars = [c for c in chars if not c.get("watch") or core.realm_key((core.latest(c["slug"]) or {}).get("realmType")) in realms]
     rows = []
     for c in chars:
         h = core.history(c["slug"])
@@ -696,13 +772,28 @@ def setup_status():
     }
 
 
+def cmd_sets(args):
+    c = need_char(positional(args)[0] if positional(args) else None)
+    ss = gearsets.sets(c["slug"], c)
+    if not ss:
+        sys.exit("no snapshots yet")
+    for s in ss:
+        when = "worn now" if s["current"] else f"last worn {s['at'][:10]}"
+        print(f"{s['label']} ({when}, level {s['level']}; roles {', '.join(s['roles'])})")
+        for slot in [x for x in core.SLOTS if x in s["gear"]]:
+            print(f"  {slot:10} {s['gear'][slot]}" + (" [newer]" if s["filled"].get(slot) else "") + (f" | {', '.join(s['stats'][slot])}" if s["stats"].get(slot) else ""))
+    missing = [r for r in (c.get("roles") or []) if not any(r in s["roles"] for s in ss)]
+    if missing:
+        print("No set seen yet for:", ", ".join(missing))
+
+
 def cmd_setup_status(_):
     print(json.dumps(setup_status(), indent=2))
 
 
 def main():
     cmds = {"update": cmd_update, "add": cmd_add, "set": cmd_set, "list": cmd_list, "where": cmd_where, "diff": cmd_diff,
-            "gear": cmd_gear, "milestones": cmd_milestones, "doctor": cmd_doctor, "log": cmd_log, "pending": cmd_pending,
+            "gear": cmd_gear, "sets": cmd_sets, "due": cmd_due, "milestones": cmd_milestones, "doctor": cmd_doctor, "log": cmd_log, "pending": cmd_pending,
             "chats": cmd_chats, "party": cmd_party, "brief": cmd_brief, "dashboard": cmd_dashboard, "statusline": cmd_statusline,
             "install-statusline": cmd_install_statusline, "profile": cmd_profile, "setup-status": cmd_setup_status, "focus": cmd_focus, "main": cmd_main, "home": cmd_home}
     if len(sys.argv) < 2 or sys.argv[1] not in cmds:

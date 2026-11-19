@@ -1,6 +1,6 @@
 ---
-name: macro
-description: Write in-game WoW macros for the user's character — finding and targeting quest mobs, rares and NPCs, casting spells and shifting forms, mouseover and self-cast heals, trinkets and items, stopcasting or interrupts, and group or chat shortcuts. Uses plain slash commands only, no scripts. Use when the user asks for a macro, wants one button to do several things, can't find a quest mob, rare or NPC ("where is Shadumbra"), wants a sweep macro for their current quests, or says "/macro".
+name: wow-macro
+description: Write in-game WoW macros for the user's character — finding and targeting quest mobs, rares and NPCs, casting spells and shifting forms, mouseover and self-cast heals, trinkets and items, stopcasting or interrupts, and group or chat shortcuts. Uses plain slash commands only, no scripts. Use when the user asks for a macro, wants one button to do several things, can't find a quest mob, rare or NPC ("where is Shadumbra"), wants a sweep macro for their current quests, or says "/wow-macro".
 argument-hint: "[what it should do | mob or NPC names | current] [character]"
 ---
 

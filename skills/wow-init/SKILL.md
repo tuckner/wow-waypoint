@@ -59,7 +59,7 @@ One question per character whose class can do more than one role (multiSelect; o
 Save: `profile set goals=... answerStyle=brief spoilers=avoid recapVoice=light`. For free-text goals ("60 by January"), store the user's words.
 
 ## 9. Friends (free text, optional but encouraged)
-"Want to add friends' characters? They show up in the party view, friend news at session start, and group coverage in /instance briefings (who handles curses, interrupts…). Names, region, and a group name if you like. It's polite to ask them first, even though armory pages are public."
+"Want to add friends' characters? They show up in the party view, friend news at session start, and group coverage in /wow-instance briefings (who handles curses, interrupts…). Names, region, and a group name if you like. It's polite to ask them first, even though armory pages are public."
 For each: `wowchar add "<Name>" --region <r> --watch [--group <name>]`, confirming like step 6. Also ask: solo / duo-trio / guild, the guild name, and the usual play night → `profile set group.type=duo-trio group.guild=... group.night=Tue`.
 
 ## 10. Status line
@@ -71,4 +71,4 @@ Show an example (`Brightmane 28 Druid · iLvl 24 · next: Travel Form @30 · 3 o
 ## 12. Finish
 1. `wowchar update`, then show what's tracked.
 2. Log a start line for each owned character: `wowchar log <slug> "Started tracking (wow-init)"`.
-3. Reply with a 5-line summary: version, characters and roles, profile in one line, friends, status line. Then suggest: `/plan` for what to do next, `/instance <name>` before a dungeon or raid, `/dashboard` to see progress.
+3. Reply with a 5-line summary: version, characters and roles, profile in one line, friends, status line. Then suggest: `/wow-plan` for what to do next, `/wow-instance <name>` before a dungeon or raid, `/wow-dashboard` to see progress.

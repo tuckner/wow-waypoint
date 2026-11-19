@@ -1,5 +1,5 @@
 {
-  "_doc": "What each class can act on, by tag. Each ability: spell, level (trained), optional talent (talentRanks key), optional role (only shown for that role). Used by /instance briefings.",
+  "_doc": "What each class can act on, by tag. Each ability: spell, level (trained), optional talent (talentRanks key), optional role (only shown for that role). Used by /wow-instance briefings.",
   "classic": {
     "Druid": {
       "dispel": {"curse": [{"spell": "Remove Curse", "level": 24}], "poison": [{"spell": "Abolish Poison", "level": 26}, {"spell": "Cure Poison", "level": 14}]},

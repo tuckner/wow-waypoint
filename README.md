@@ -27,7 +27,7 @@ When it asks where to install, pick **user** to have it in every folder. Pick **
 /wow-init
 ```
 
-It asks where to save your notes: the folder you're in, `~/wow-notes`, or any folder you choose. Then it asks about your characters, how you like to play and who you play with. After that you're set. 🎉 Start Claude Code anywhere and it finds your notes. A good first thing to try is `/plan`.
+It asks where to save your notes: the folder you're in, `~/wow-notes`, or any folder you choose. Then it asks about your characters, how you like to play and who you play with. After that you're set. 🎉 Start Claude Code anywhere and it finds your notes. A good first thing to try is `/wow-plan`.
 
 > 🗂️ Want WoW out of the way while you work on other things? `/wow-init` can limit it to sessions started in your notes folder.
 
@@ -35,17 +35,17 @@ It asks where to save your notes: the folder you're in, `~/wow-notes`, or any fo
 
 ## ✨ What it does
 
-🧭 **`/dashboard`: your adventure at a glance.** A page with a trading card for each character, what to do next, your route to 60, your gear, your friends, and a journal of everything so far.
+🧭 **`/wow-dashboard`: your adventure at a glance.** A page with a trading card for each character, what to do next, your route to 60, your gear, your friends, and a journal of everything so far.
 
-🗺️ **`/plan`: what to do next.** Where to level, which dungeons to run, which gear to chase, and what to train, sized to how much time you have.
+🗺️ **`/wow-plan`: what to do next.** Where to level, which dungeons to run, which gear to chase, and what to train, sized to how much time you have.
 
-📖 **`/recap`: your story so far.** Turns your recent sessions into a short journal chapter.
+📖 **`/wow-recap`: your story so far.** Turns your recent sessions into a short journal chapter.
 
-⚔️ **`/instance <name>`: a briefing before you go in.** What *you* should dispel, interrupt and crowd-control, where to stand, and which loot is for you.
+⚔️ **`/wow-instance <name>`: a briefing before you go in.** What *you* should dispel, interrupt and crowd-control, where to stand, and which loot is for you.
 
-👥 **`/party`: you and your friends.** Who's ahead, what they've been up to, and which dungeons fit everyone.
+👥 **`/wow-party`: you and your friends.** Who's ahead, what they've been up to, and which dungeons fit everyone.
 
-🎯 **`/macro`: one-button tricks.** In-game macros for your character: find a quest mob or rare, mouseover heals, form plus opener, trinkets, party shortcuts. Plain slash commands, no scripts.
+🎯 **`/wow-macro`: one-button tricks.** In-game macros for your character: find a quest mob or rare, mouseover heals, form plus opener, trinkets, party shortcuts. Plain slash commands, no scripts.
 
 ❓ **`/wow-help`: lost?** Shows everything it can do.
 
@@ -68,7 +68,7 @@ Then restart Claude Code. You can also turn on auto-updates under `/plugin` → 
 
 ## 🤝 Playing with friends
 
-Your friends can install it the same way and follow each other with `/party`. Only add someone's character if they're okay with it.
+Your friends can install it the same way and follow each other with `/wow-party`. Only add someone's character if they're okay with it.
 
 ## 🗑️ Removing it
 

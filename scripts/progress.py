@@ -394,11 +394,11 @@ def journal_box(chars):
         books.append((c, f"<div class='jbook' data-book='{esc(c['slug'])}' style='--cc:{c['colors'][0]};--ccl:{c['colors'][1]}'>"
                          f"<nav class='jtoc' aria-label='Chapters'>{toc}</nav><div class='jpages'>{body}{stand}</div></div>"))
     if not books:
-        return box("sec-journal", "Survey", "Journal", "<div class='empty'>No journal yet. Run /recap to start one.</div>")
+        return box("sec-journal", "Survey", "Journal", "<div class='empty'>No journal yet. Run /wow-recap to start one.</div>")
     pick = "".join(f"<button type='button' class='jpick' data-book='{esc(c['slug'])}' aria-pressed='{str(i == 0).lower()}'>{esc(c['first'])}</button>"
                    for i, (c, _) in enumerate(books))
     return box("sec-journal", "Survey", "Journal", f"<div class='jpicks'>{pick}</div>" + "".join(b for _, b in books),
-               "written by /recap · oldest first")
+               "written by /wow-recap · oldest first")
 
 
 PAGES = [  # (hash, sidebar name, title)

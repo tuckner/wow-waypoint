@@ -1,5 +1,5 @@
 ---
-name: recap
+name: wow-recap
 description: Write an adventure recap for a tracked WoW Forever character — what changed since the last recap (levels, gear, professions, talents, rep), how it compares to the current plan, and a short story-style log entry. Use when the user asks for a recap, summary of progress, "what have I done", or a session/weekly wrap-up.
 argument-hint: "[character name or slug] [since YYYY-MM-DD]"
 ---
@@ -47,6 +47,6 @@ One-line hook.
    The hidden `<!-- recap: YYYY-MM-DD -->` line (today's date) is how the script knows when the last recap happened. Always include it. If the file doesn't exist, create it with `# <Name> — journey log`, an italic one-line note, `---`, the entries, then the "Where things stand" block.
 8. **Close the window:** `python3 "${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py" log <slug> "=== recapped ==="`. Keep unanswered `?` lines. Answered ones were already rewritten as facts.
 9. **Fill gaps.** If key outcomes are still unknown (did X drop, which zone, finished Y), ask 1–3 short questions at the end of the reply and `log` them with `?`.
-10. **Reply** with the new entry. Offer `/plan` if the plan is stale or mostly done.
+10. **Reply** with the new entry. Offer `/wow-plan` if the plan is stale or mostly done.
 
 Rules: light tone, no invented events. Keep each entry under ~8 lines. Reply with the new entry itself.

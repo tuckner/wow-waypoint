@@ -1,5 +1,5 @@
 ---
-name: party
+name: wow-party
 description: Group view of the user's characters and their watched friends — who's ahead, what friends have been doing lately, which dungeons fit everyone's levels, and who needs what gear. Use for "how's the group doing", "what has <friend> been up to", "what dungeon should we run", "who needs X", "level race", or adding a friend's character.
 argument-hint: "[--since YYYY-MM-DD] [group name] | add <friend name>"
 ---
@@ -15,3 +15,5 @@ argument-hint: "[--since YYYY-MM-DD] [group name] | add <friend name>"
 - **"Who needs X":** read the friends' `notes/characters/<slug>/summary.md` gear tables.
 
 Keep it to one screen. Friend data lags until they log out (the armory updates on logout).
+
+Realm filter: when the user asks about friends on one kind of realm ("my PvP friends", "who's on RP"), add `--realm pvp|pve|rp|rppvp` (comma-separated for several). It filters friends only; your own characters always show. The dashboard's Friends tab has the same filter as buttons.

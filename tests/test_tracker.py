@@ -442,3 +442,64 @@ class TestSetup(Workspace):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ---------- gear sets by role ----------
+
+class TestGearSets(Workspace):
+    def test_item_tags(self):
+        import gearsets
+        self.assertEqual(gearsets.item_tag(["+8 Agility", "+10 Stamina"]), "phys")
+        self.assertEqual(gearsets.item_tag(["+18 Spell Healing", "+6 Spirit"]), "heal")
+        self.assertEqual(gearsets.item_tag(["+5 Intellect", "-3 Agility"]), "caster")
+        self.assertIsNone(gearsets.item_tag(["+4 Stamina", "-3 Spirit"]))
+
+    def test_two_sets_mapped_to_roles(self):
+        import gearsets
+        feral = snap(28, 2, gear={"Chest": "Cat Vest", "Back": "Old Cloak"})
+        feral["stats"] = {"agility": 84, "strength": 64, "intellect": 50, "spirit": 70, "spell_power": 0}
+        heal = snap(30, 0, gear={"Chest": "Heal Robe", "Back": "Cat Cloak"})
+        heal["stats"] = {"agility": 53, "strength": 52, "intellect": 63, "spirit": 85, "spell_power": 37}
+        self.add("testy-mctest", [feral, heal], roles=["heal", "tank", "dps"])
+        gearsets.remember_items("testy-mctest", {"items": [
+            {"slot": "Chest", "name": "Heal Robe", "ilvl": 28, "lines": ["+18 Spell Healing"]},
+            {"slot": "Back", "name": "Cat Cloak", "ilvl": 32, "lines": ["+10 Attack Power"]}]})
+        ss = gearsets.sets("testy-mctest")
+        self.assertEqual([s["roles"] for s in ss], [["heal"], ["tank", "dps"]])
+        self.assertTrue(ss[0]["current"])
+        self.assertEqual(ss[1]["gear"]["Back"], "Cat Cloak")  # worn with the healer set, suits feral
+        self.assertTrue(ss[1]["filled"]["Back"])
+        self.assertEqual(ss[1]["gear"]["Chest"], "Cat Vest")
+
+    def test_single_role_has_no_sets_section(self):
+        import gearsets
+        self.add("testy-mctest", [snap(20, 0, cls="Warlock")], roles=["dps"])
+        self.assertEqual(gearsets.summary_lines("testy-mctest", core.find_char("testy-mctest")), [])
+
+
+class TestDue(Workspace):
+    def test_recap_and_plan_due_for_main(self):
+        import wowchar
+        self.add("testy-mctest", [snap(26, 4), snap(30, 0)], main=True)
+        d = core.BASE / "testy-mctest"
+        (d / "journal.md").write_text(f"<!-- recap: {(datetime.now() - timedelta(days=4)).strftime('%Y-%m-%d')} -->\n")
+        (d / "plan.md").write_text(f"_Plan written {(datetime.now() - timedelta(days=4)).strftime('%Y-%m-%d')} at level 26._\n# x — plan (levels 26 → 30)\n")
+        got = dict(wowchar.due(core.find_char("testy-mctest")))
+        self.assertIn("wow-recap", got)
+        self.assertIn("wow-plan", got)
+        self.assertIn("run these yourself", wowchar.due_report({}))
+        self.assertEqual(wowchar.due_report({"autoSkills": "off"}), "")
+
+    def test_idle_alt_is_skipped(self):
+        import wowchar
+        self.add("testy-mctest", [snap(28, 5), snap(28, 0)])
+        self.assertEqual(wowchar.due_report({}), "")
+
+
+class TestRealmFilter(Workspace):
+    def test_realm_keys(self):
+        self.assertEqual([core.realm_key(x) for x in ("PvP", "PvE", "RP", "RP-PvP", "Normal", None)],
+                         ["pvp", "pve", "rp", "rppvp", "pve", None])
+        self.assertEqual(core.realm_filter("pvp, RP-PvP"), {"pvp", "rppvp"})
+        with self.assertRaises(SystemExit):
+            core.realm_filter("pvx")

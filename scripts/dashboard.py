@@ -14,6 +14,7 @@ import re
 from datetime import datetime
 
 import core
+import gearsets
 import milestones
 import progress
 import wowhead
@@ -129,8 +130,19 @@ def collect(group=None):
             "render": wowhead.image_uri(lat.get("render"), "renders", RENDER_MAX_AGE_H),
             "avatar": wowhead.image_uri(lat.get("avatar"), "renders", RENDER_MAX_AGE_H),
             "version": version,
+            "sets": gear_sets(c, level),
         })
     return out
+
+
+def gear_sets(c, level):
+    """Role sets for the gear readout: [] unless the character plays more than one role group."""
+    cls = ((core.history(c["slug"], tail=8000) or [{}])[-1]).get("class")
+    if c.get("watch") or not gearsets.wants_sets(c, cls):
+        return []
+    ss = gearsets.sets(c["slug"], c)
+    return [{"label": s["label"], "roles": s["roles"], "current": s["current"], "at": s["at"][:10], "level": s["level"],
+             "filled": s["filled"], "items": {slot: doll_item(i, level) for slot, i in s["items"].items()}} for s in ss]
 
 
 def worn(ch):
@@ -433,8 +445,8 @@ def up_next(ch):
         return ""
     rows = "".join(f"<li><span class='un-k un-{k.lower()}'>{k}</span><div><b>{title}</b>" + (f"<span>{detail}</span>" if detail else "") + "</div></li>"
                    for k, title, detail in items[:6])
-    src = (f"From your plan ({written}). Run /plan to refresh." if plan else
-           "Suggested from level, gear and your log." + ("" if ch["watch"] else " Run /plan for a full route."))
+    src = (f"From your plan ({written}). Run /wow-plan to refresh." if plan else
+           "Suggested from level, gear and your log." + ("" if ch["watch"] else " Run /wow-plan for a full route."))
     return (f"<div class='un'><div class='un-h'><span class='lbl'>Up next</span><span class='ch-r'>{esc(src)}</span></div>"
             f"<ol class='un-list'>{rows}</ol></div>")
 
@@ -472,13 +484,12 @@ def icon(it, small=False):
             f"aria-label='{esc(it['slot'])}: {esc(it['name'])}'>{img}</{tag}>{tooltip(it)}</span>")
 
 
-def gear_readout(ch):
-    w = worn(ch)
-    top = max([i["ilvl"] or 0 for i in w] + [ch["level"] + 5])
+def gear_rows(items, level, top, filled=None):
+    w = [i for s, i in items.items() if s not in core.COSMETIC]
     weakest = {i["slot"] for i in sorted((i for i in w if i["ilvl"]), key=lambda i: i["ilvl"])[:2]}
     rows = []
     for s in core.SLOTS:
-        it = ch["items"].get(s)
+        it = items.get(s)
         if not it:
             if s in ("Off Hand",):
                 continue
@@ -486,13 +497,38 @@ def gear_readout(ch):
                         f"<span class='gn muted'>empty</span><span class='gm'></span>{light('warn', 'empty')}</div>")
             continue
         st = ("bad", "repair") if it["low"] else ("warn", "weak") if s in weakest else ("ok", "ok")
+        if (filled or {}).get(s):
+            st = ("ok", "newer")
         pct = (it["ilvl"] or 0) / top * 100
         rows.append(f"<div class='gr'>{icon(it)}<span class='gs'>{esc(s)}</span>"
                     f"<span class='gn q-{esc(it['quality'])}'>{esc(it['name'])}</span>"
-                    f"<span class='gm'><span class='meter'><span style='width:{pct:.0f}%'></span></span><b>{esc(it['ilvl'])}</b></span>"
+                    f"<span class='gm'><span class='meter'><span style='width:{pct:.0f}%'></span></span><b>{esc(it['ilvl'] or '?')}</b></span>"
                     f"{light(*st)}</div>")
+    return "".join(rows)
+
+
+def gear_readout(ch):
+    w = worn(ch)
+    top = max([i["ilvl"] or 0 for i in w] + [ch["level"] + 5])
+    sets = ch.get("sets") or []
+    if sets:
+        name = f"gs-{ch['slug']}"
+        tabs, panels = [], []
+        for n, st in enumerate(sets):
+            sid = f"{name}-{n}"
+            items = ch["items"] if st["current"] else st["items"]
+            when = "worn now" if st["current"] else f"last worn {st['at']} · lvl {st['level']}"
+            tabs.append(f"<input type='radio' name='{name}' id='{sid}' class='gs-in'{' checked' if n == 0 else ''}>"
+                        f"<label for='{sid}' class='gs-tab'>{esc(st['label'])}<small>{esc(when)}</small></label>")
+            panels.append(f"<div class='grs gs-p'>{gear_rows(items, ch['level'], top, st['filled'])}</div>")
+        missing = [r for r in ch["roles"] if not any(r in st["roles"] for st in sets)]
+        note = (f"<p class='gs-note muted'>No {', '.join(gearsets.ROLE_NAME.get(r, r) for r in missing)} set seen yet. Log out wearing it once to record it.</p>"
+                if missing else "<p class='gs-note muted'>Each logout records the set you wear. Older sets refresh when you log out in them.</p>")
+        return (f"<section class='console gsets'><header class='ch'><span class='lbl'>Gear sets</span>"
+                f"<span class='ch-r'>avg ilvl {esc(ch['ilvl'])} (worn) · meter vs best {top}</span></header>"
+                f"{''.join(tabs)}{''.join(panels)}{note}</section>")
     return (f"<section class='console'><header class='ch'><span class='lbl'>Gear readout</span>"
-            f"<span class='ch-r'>avg ilvl {esc(ch['ilvl'])} · meter vs best {top}</span></header><div class='grs'>{''.join(rows)}</div></section>")
+            f"<span class='ch-r'>avg ilvl {esc(ch['ilvl'])} · meter vs best {top}</span></header><div class='grs'>{gear_rows(ch['items'], ch['level'], top)}</div></section>")
 
 
 def stats_console(ch):
@@ -585,15 +621,21 @@ def binder_view(chars):
     friends = [c for c in chars if c["watch"]]
     if not friends:
         return ("<div class='view' data-view='friends'><header class='vh'><span class='lbl'>Binder</span><h2>Friends</h2></header>"
-                "<div class='console empty'>No friends watched yet. Add one with /party.</div></div>")
+                "<div class='console empty'>No friends watched yet. Add one with /wow-party.</div></div>")
     mine = [c for c in chars if not c["watch"]]
-    cards = "".join(f"<div class='slotcard'>{card(c, link=True)}</div>" for c in friends)
+    rk = {c["slug"]: core.realm_key(c.get("realmType")) or "unknown" for c in friends}
+    counts = {k: sum(v == k for v in rk.values()) for k in core.REALM_TYPES}
+    chips = (f"<button type='button' class='jpick rpick' data-realm-pick='all' aria-pressed='true'>All {len(friends)}</button>"
+             + "".join(f"<button type='button' class='jpick rpick' data-realm-pick='{k}' aria-pressed='false'{'' if counts[k] else ' disabled'}>"
+                       f"{esc(n)} {counts[k]}</button>" for k, n in core.REALM_TYPES.items()))
+    cards = "".join(f"<div class='slotcard' data-realm='{rk[c['slug']]}'>{card(c, link=True)}</div>" for c in friends)
     rows = "".join(
-        f"<div class='race-row' style='{cvars(c)}'><span class='rn'>{esc(c['first'])}{' <span class=tag>friend</span>' if c['watch'] else ''}</span>"
+        f"<div class='race-row' data-realm='{rk[c['slug']]}' style='{cvars(c)}'><span class='rn'>{esc(c['first'])}{' <span class=tag>friend</span>' if c['watch'] else ''}</span>"
         f"<span class='meter meter-race'><span style='width:{c['level'] / 60 * 100:.1f}%'></span></span><b>{c['level']}</b>"
         f"<span class='muted rd'>{esc(c['class'])} · ilvl {esc(c['ilvl'])}</span></div>"
         for c in sorted(friends, key=lambda c: -c["level"]))
     return (f"<div class='view' data-view='friends'><header class='vh'><span class='lbl'>Binder</span><h2>Friends</h2></header>"
+            f"<div class='jpicks rpicks' role='group' aria-label='Filter friends by realm type'>{chips}</div>"
             f"<div class='binder'>{cards}</div>"
             f"<section class='survey'><header class='sh'><span class='lbl'>Survey</span><h2>Where they are</h2></header>{survey_map(friends)}</section>"
             f"<section class='console'><header class='ch'><span class='lbl'>Level race</span><span class='ch-r'>to 60</span></header>{rows}</section>"
@@ -783,6 +825,20 @@ a.card:hover{--lift:1}
 .meter-race{height:10px;border-radius:5px}.meter-race>span{border-radius:5px}
 
 /* gear readout */
+.rpicks{flex-wrap:wrap}.rpick:disabled{opacity:.4;cursor:default}
+[data-realm][hidden]{display:none!important}
+/* gear sets (role tabs, CSS-only) */
+.gs-in{position:absolute;opacity:0;pointer-events:none}
+.gs-tab{display:inline-flex;flex-direction:column;gap:2px;margin:0 6px 10px 0;padding:6px 10px;border:1px solid var(--rule-2);border-radius:var(--r-2);cursor:pointer;font-weight:600;font-size:12.5px;color:var(--ink-2)}
+.gs-tab small{font:500 10.5px/1.2 var(--font-mono);color:var(--ink-3)}
+.gs-in:checked+.gs-tab{border-color:var(--route);color:var(--ink);background:var(--sheet-2)}
+.gs-in:focus-visible+.gs-tab{outline:2px solid var(--route);outline-offset:2px}
+.gs-p{display:none}
+.gsets .gs-in:nth-of-type(1):checked~.gs-p:nth-of-type(1){display:grid}
+.gsets .gs-in:nth-of-type(2):checked~.gs-p:nth-of-type(2){display:grid}
+.gsets .gs-in:nth-of-type(3):checked~.gs-p:nth-of-type(3){display:grid}
+.gsets .gs-in:nth-of-type(4):checked~.gs-p:nth-of-type(4){display:grid}
+.gs-note{margin:8px 0 0;font-size:12px}
 .grs{display:grid}
 .gr{display:grid;grid-template-columns:40px 78px minmax(0,1fr) 120px 74px;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--rule)}
 .gr:last-child{border-bottom:0}
@@ -921,6 +977,10 @@ document.querySelectorAll('.scenes').forEach(g=>{const slug=g.dataset.slug;let k
   if(k&&g.querySelector(`[data-scene="${k}"]`))setScene(slug,k,false);
   g.querySelectorAll('.sc-b').forEach(b=>b.addEventListener('click',()=>setScene(slug,b.dataset.scene,true)))});
 
+/* friends: filter by realm type */
+document.querySelectorAll('.rpick').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.realmPick;
+  document.querySelectorAll('.rpick').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  document.querySelectorAll('[data-view="friends"] [data-realm]').forEach(e=>e.hidden=k!=='all'&&e.dataset.realm!==k)}));
 /* journal: one book at a time; chapter links scroll inside the book */
 document.querySelectorAll('.jpick').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.jpick').forEach(x=>x.setAttribute('aria-pressed',x===b));
   document.querySelectorAll('.jbook').forEach(j=>j.hidden=j.dataset.book!==b.dataset.book)}));

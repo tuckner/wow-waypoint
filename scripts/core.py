@@ -266,6 +266,24 @@ def profile_md(p):
 
 # ---------- snapshots ----------
 
+REALM_TYPES = {"pvp": "PvP", "pve": "PvE", "rp": "RP", "rppvp": "RP-PvP"}
+
+
+def realm_key(s):
+    """'PvP', 'RP-PvP', 'Normal'… -> pvp / pve / rp / rppvp (None if unknown)."""
+    k = re.sub(r"[^a-z]", "", (s or "").lower())
+    return {"normal": "pve", "roleplaying": "rp", "roleplayingpvp": "rppvp", "rpppvp": "rppvp"}.get(k, k) or None
+
+
+def realm_filter(arg):
+    """'pvp,rp' -> {'pvp','rp'}; exits on an unknown type."""
+    keys = {realm_key(x) for x in (arg or "").split(",") if x.strip()}
+    bad = keys - set(REALM_TYPES)
+    if bad:
+        sys.exit(f"unknown realm type {', '.join(sorted(bad))}; use {', '.join(REALM_TYPES)}")
+    return keys
+
+
 def history(slug, tail=None):
     p = BASE / slug / "history.jsonl"
     if not p.exists():
