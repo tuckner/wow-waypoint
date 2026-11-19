@@ -10,7 +10,7 @@ Tell it who you play, and it keeps an eye on your characters: what you're wearin
 
 ## 🚀 Get started
 
-You'll need [Claude Code](https://claude.com/claude-code) and Python 3. Python is already on Macs and most Linux machines; on Windows, grab it from [python.org](https://www.python.org/downloads/).
+You'll need [Claude Code](https://claude.com/claude-code) and Python 3.
 
 **1. Install wow-waypoint** from Claude Code, in any folder:
 
