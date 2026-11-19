@@ -1,6 +1,6 @@
 {
   "name": "wow-waypoint",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Track WoW characters: armory snapshots, gear summaries, milestones, a live activity log, role briefings for dungeons and raids, friends' progress, a Waypoint dashboard and a status line.",
   "keywords": [
     "wow",
