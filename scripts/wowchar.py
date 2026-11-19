@@ -2,7 +2,7 @@
 """wow-waypoint: WoW character tracker for Claude Code. Stdlib only.
 
 Characters
-  add "<First Last>" [--region us] [--version forever] [--watch] [--group NAME] [--role tank,dps] [--main] [--source ID]
+  add "<First Last>"|<wowf.io link> [--region us] [--version forever] [--watch] [--group NAME] [--role tank,dps] [--main] [--source ID]
   main [<char>]                    show or change the primary character: the user's favorite, the default everywhere.
                                    Long-lived; change it only when the favorite changes, never to switch for a session
   set <char> key=value ...         edit a character entry (roles=tank,dps  main=true  version=era  group=...)
@@ -27,8 +27,10 @@ Views
                                    (--user: ~/.claude/settings.json, so it shows in every folder)
 Setup
   setup-status                     what /wow-init has set up so far
-  home | home set <folder> [--announce everywhere|home] | home announce <mode>
-                                   where notes live, remembered per user so Claude Code can start anywhere
+  home | home set <folder> [--announce home|everywhere] | home announce <mode>
+                                   where notes live, remembered per user so Claude Code can start anywhere.
+                                   announce: home (default) = WoW context only in sessions started in the notes folder
+  session on|off --session ID      turn WoW context on (or off) for one session started outside the notes folder
   profile | profile set key=value ...   player profile (version, realmType, playstyle=a,b, hoursPerWeek, goals=a,b, ...)
 
 Data lives in YOUR workspace (never this repo): $WOWCHAR_HOME, else the project folder or a folder above it that
@@ -166,7 +168,9 @@ def cmd_update(args):
     chars = core.load_config()
     if hook and not chars:
         return  # plugin installed but nothing tracked in this folder: stay silent
-    if hook and core.SOURCE == "home" and core.read_pointer().get("announce") == "home" and not core.session_in_home():
+    sid = hook_session_id() if hook else None
+    if (hook and core.SOURCE == "home" and core.announce_mode() == "home" and not core.session_in_home()
+            and not core.session_opted_in(sid)):
         quiet, hook = True, False  # still refresh snapshots, but say nothing outside the notes folder
     report = []
     for c in chars:
@@ -191,7 +195,7 @@ def cmd_update(args):
     elif not quiet:
         print(f"No changes (or snapshots fresh <{core.THROTTLE_HOURS}h). Use --force to refetch.")
     if hook:
-        print(hook_instructions(chars, hook_session_id()))
+        print(hook_instructions(chars, sid))
         for slug, v in core.failing().items():
             print(f"⚠ armory parsing looks broken for {slug} since {v['failing_since'][:10]} ({'; '.join(v['problems'])}). "
                   f"Run: python3 \"{core.SCRIPT}\" doctor {slug} and show the user the failing step.")
@@ -285,8 +289,11 @@ def cmd_add(args):
     version = opt(args, "--version", "forever")
     name = " ".join(positional(args))
     if not name:
-        sys.exit('usage: add "First Last" [--region us] [--version forever] [--watch] [--group NAME] [--role tank,dps] [--main]')
+        sys.exit('usage: add "First Last"|<wowf.io link> [--region us] [--version forever] [--watch] [--group NAME] [--role tank,dps] [--main]')
     slug = core.slugify(name)
+    if m := re.search(r"wowf\.io/(?:[a-z]{2}/)?players/([a-z]{2})/([^/?#\s]+)", name, re.I):
+        region, slug = m.group(1).lower(), m.group(2).lower()  # pasted profile link: exact region and slug
+        name = slug.replace("-", " ").title()
     chars = core.load_config()
     if any(c["slug"] == slug for c in chars):
         print(f"{slug} already tracked (use `set {slug} key=value` to change it)")
@@ -724,7 +731,7 @@ def cmd_home(args):
         cfg = home / "notes" / "characters" / "characters.json"
         if not cfg.exists():
             cfg.write_text("[]\n")
-        d = core.write_pointer(home=str(home), announce=announce or core.read_pointer().get("announce") or "everywhere")
+        d = core.write_pointer(home=str(home), announce=announce or core.announce_mode())
         print(f"notes folder set to {home} (remembered in {core.pointer_path()}); WoW context shows {'in every session' if d['announce'] == 'everywhere' else 'only in sessions started in that folder'}.")
         return
     if pos[:1] == ["announce"]:
@@ -735,7 +742,23 @@ def cmd_home(args):
         return
     ptr = core.read_pointer()
     print(json.dumps({"workspace": str(core.ROOT), "found_by": core.SOURCE, "remembered_home": ptr.get("home"),
-                      "announce": ptr.get("announce", "everywhere"), "pointer_file": str(core.pointer_path())}, indent=2))
+                      "announce": core.announce_mode(), "pointer_file": str(core.pointer_path())}, indent=2))
+
+
+def cmd_session(args):
+    """session on|off --session ID: turn WoW context on for one session started outside the notes folder."""
+    pos, sid = positional(args, with_values=("--session",)), opt(args, "--session")
+    if pos[:1] not in (["on"], ["off"]) or not sid:
+        sys.exit("usage: session on|off --session ID")
+    ids = [i for i in core.opted_in_sessions() if i != sid]
+    if pos[0] == "on":
+        ids = (ids + [sid])[-50:]
+    core.write_text(core.BASE / ".sessions.json", json.dumps(ids) + "\n")
+    if pos[0] == "off":
+        print("WoW context off for this session (other sessions are unaffected).")
+        return
+    print("WoW context on for this session only (resume/compact keep it).")
+    print(hook_instructions(core.load_config(), sid))
 
 
 def cmd_profile(args):
@@ -761,7 +784,7 @@ def setup_status():
         "workspace": str(core.ROOT),
         "workspace_found_by": core.SOURCE,
         "remembered_home": ptr.get("home"),
-        "announce": ptr.get("announce"),
+        "announce": core.announce_mode(),
         "suggested_home": str(Path.home() / "wow-notes"),
         "inside_repo": core.ROOT == core.KIT or core.KIT in core.ROOT.parents,
         "claude_md": "missing" if not cm.exists() else ("ok" if "WoW" in cm.read_text() else "exists (not a WoW workspace file; offer to merge)"),
@@ -799,7 +822,7 @@ def main():
     cmds = {"update": cmd_update, "add": cmd_add, "set": cmd_set, "list": cmd_list, "where": cmd_where, "diff": cmd_diff,
             "gear": cmd_gear, "sets": cmd_sets, "due": cmd_due, "milestones": cmd_milestones, "doctor": cmd_doctor, "log": cmd_log, "pending": cmd_pending,
             "chats": cmd_chats, "party": cmd_party, "brief": cmd_brief, "dashboard": cmd_dashboard, "statusline": cmd_statusline,
-            "install-statusline": cmd_install_statusline, "profile": cmd_profile, "setup-status": cmd_setup_status, "focus": cmd_focus, "main": cmd_main, "home": cmd_home}
+            "install-statusline": cmd_install_statusline, "profile": cmd_profile, "setup-status": cmd_setup_status, "focus": cmd_focus, "main": cmd_main, "home": cmd_home, "session": cmd_session}
     if len(sys.argv) < 2 or sys.argv[1] not in cmds:
         sys.exit(__doc__)
     cmds[sys.argv[1]](sys.argv[2:])

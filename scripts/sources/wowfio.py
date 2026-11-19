@@ -26,7 +26,7 @@ def fetch_html(url):
             return r.status, r.read().decode("utf-8", "replace")
     except urllib.error.HTTPError as e:
         if e.code == 404:
-            raise ParseError(f"404 at {url}: no such character (check name and region; wowf.io only knows a character after it logs out once)")
+            raise ParseError(f"404 at {url}: no such character (check name and region, or pass the character's wowf.io link to add; wowf.io only knows a character after it logs out once)")
         raise NetworkError(f"HTTP {e.code} at {url}")
     except (urllib.error.URLError, socket.timeout, TimeoutError, ConnectionError) as e:
         raise NetworkError(f"{type(e).__name__}: {getattr(e, 'reason', e)}")

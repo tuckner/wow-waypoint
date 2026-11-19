@@ -6,7 +6,7 @@ argument-hint: "[what to change, e.g. 'add friends' or 'playstyle']"
 
 # WoW tracker setup
 
-`wowchar` below means `python3 "${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py"`. Type the full command each time; don't store it in a shell variable (`W="python3 …"; $W args` fails in zsh, which doesn't split words). The script is also executable, so `"${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py" args` works on macOS and Linux. Keep the whole flow quick: about 4 question rounds and under 3 minutes. Every optional question can be skipped.
+`wowchar` below means `python3 "${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py"`. Type the full command each time; don't store it in a shell variable (`W="python3 …"; $W args` fails in zsh, which doesn't split words). The script is also executable, so `"${CLAUDE_SKILL_DIR}/../../scripts/wowchar.py" args` works on macOS and Linux. Keep the whole flow quick: about 4 question forms and under 3 minutes. Every optional question can be skipped.
 
 ## 1. Check state
 Run `wowchar setup-status` (JSON).
@@ -15,11 +15,9 @@ Run `wowchar setup-status` (JSON).
 - `inside_repo: true` and no notes yet → don't save anything here (it's the plugin's own folder); step 1b must pick another folder.
 
 ## 1b. Where to keep notes (first run only)
-Claude Code can be started in any folder; the notes live in one place and are found from everywhere. One `AskUserQuestion` with two questions:
-- **"Where should your WoW notes be saved?"** Options, in this order: "This folder (<workspace>) (Recommended)" first, then `suggested_home` from setup-status (e.g. `~/wow-notes`) as the easy alternative, and Other for a path they type (a cloud-synced folder like iCloud Drive or Dropbox works too). When `inside_repo` is true, leave out "This folder" and mark `suggested_home` as Recommended instead.
-- **"Show WoW help in every Claude Code session, or only when you start Claude Code in your notes folder?"** Options: "Every session (Recommended)": character updates, milestones and the activity log work wherever you are. "Only in the notes folder": other projects stay WoW-free, and snapshots still refresh quietly.
+Claude Code can be started in any folder; the notes live in one place. One `AskUserQuestion`: **"Where should your WoW notes be saved?"** Options, in this order: "This folder (<workspace>) (Recommended)" first, then `suggested_home` from setup-status (e.g. `~/wow-notes`) as the easy alternative, and Other for a path they type (a cloud-synced folder like iCloud Drive or Dropbox works too). When `inside_repo` is true, leave out "This folder" and mark `suggested_home` as Recommended instead.
 
-Then run `wowchar home set "<folder>" --announce everywhere|home`. It creates `<folder>/notes/` and remembers the folder in `~/.config/wow-waypoint/config.json`. Every later command in this session finds it automatically. Say in one line where notes will live. If they picked "every session" and the plugin was installed for this project only, mention that `/plugin` can switch it to user scope so it loads in every folder.
+Then run `wowchar home set "<folder>"`. It creates `<folder>/notes/` and remembers the folder in `~/.config/wow-waypoint/config.json`. Say in one line where notes will live, and that WoW context only loads in sessions started in that folder (other projects stay WoW-free; snapshots still refresh quietly). Don't ask about scope. Only if the user asks for it elsewhere: one other session → `wowchar session on --session <id>`; every session → `wowchar home announce everywhere`.
 
 ## 2. Workspace rules
 If `claude_md` is `missing`, copy the `template` path from setup-status to `<workspace>/CLAUDE.md` (the notes folder from step 1b, not necessarily the current folder), filling in the version line once the version is known (step 3). If a non-WoW CLAUDE.md exists, offer to append the template's sections instead of overwriting. Sessions started in that folder load these Q&A rules; sessions started elsewhere still get the essentials from the session-start hook.
@@ -28,22 +26,23 @@ If `claude_md` is `missing`, copy the `template` path from setup-status to `<wor
 One `AskUserQuestion`: "Which version of WoW do you play?" Options: WoW Forever, Classic Era / Hardcore, Season of Discovery, Retail (the user can type "a mix" or Cata/MoP Classic under Other).
 - Map the answer to a version key: `forever`, `era`, `hardcore`, `sod`, `progression`, `retail`. Save it with `wowchar profile set version=<key>`.
 - setup-status lists `versions_supported`. If theirs isn't supported, say plainly: "Character snapshots aren't available for <version> yet (no armory site hooked up), but Q&A, plans and recaps still work." Then continue.
-- "A mix": ask the version per character in step 5.
+- "A mix": ask the version per character in step 6.
 
-## 4. Characters (free text)
-"What are your characters' names (first and last, as on the armory)? Main first."
-
-## 5. Round 1 (one AskUserQuestion, at most 4 questions)
+## 4. Round 1 (one AskUserQuestion, 4 questions)
+Never ask for character names in chat; they go in this form.
+- **Characters** (required): "Your character names, main first? Type them under Other, or paste wowf.io links." Options: "Type names under Other", "Paste wowf.io links under Other" (on a re-run, add "Keep: <tracked names>" first). If the answer holds no names or links, ask this question again on its own in a new `AskUserQuestion`; don't continue without at least one.
 - **Region**: US / EU (the armory site needs it to find the character)
-- **Realm type**: the options from data/sources.json `realmTypes` for their version (e.g. Forever: PvE / PvP / RP). Skip this if the first fetch in step 6 returns it, since the armory site reports it.
 - **Playstyle** (multiSelect): Relaxed, Optimized / speed, Lore-driven, Role-play (they can type completionist, gold-making or PvP under Other)
 - **Time per week**: under 5h / 5–15h / 15h+
 
-Save the answers: `wowchar profile set region=us realmType=PvP playstyle=relaxed,lore hoursPerWeek=5-15`.
+Save the answers: `wowchar profile set region=us playstyle=relaxed,lore hoursPerWeek=5-15` (and `realmType=` once known).
+
+## 5. Realm type (only if needed)
+The first fetch in step 6 usually reports it. Ask only if it doesn't (or the version has no armory site): one `AskUserQuestion` with the options from data/sources.json `realmTypes` for their version (e.g. Forever: PvE / PvP / RP).
 
 ## 6. Add and confirm each character
 `wowchar add "<First Last>" --region <r> [--version <v>] [--main]` (main = the first one named). Read back what it prints ("Brightmane Hoof: level 28 Tauren Druid, PvP realm. That's you?").
-- 404: try the other region, and remind them the armory only knows a character after its first logout.
+- Fetch fails (404 or not found): one `AskUserQuestion` (not chat) asking them to paste, under Other, the link to the character's wowf.io page (e.g. `https://wowf.io/en/players/us/brightmane-hoof`), then run `wowchar add "<link>" [--main]`. The link gives the exact region and name. If they can't find the page, the character probably hasn't logged out since it was created; add it after their next logout.
 - Unsupported version: the add saves the entry without a snapshot. That's fine.
 - If the fetch reports a realm type, save it: `profile set realmType=<value>`.
 
@@ -63,7 +62,7 @@ Save: `profile set goals=... answerStyle=brief spoilers=avoid recapVoice=light`.
 For each: `wowchar add "<Name>" --region <r> --watch [--group <name>]`, confirming like step 6. Also ask: solo / duo-trio / guild, the guild name, and the usual play night → `profile set group.type=duo-trio group.guild=... group.night=Tue`.
 
 ## 10. Status line
-Show an example (`Brightmane 28 Druid · iLvl 24 · next: Travel Form @30 · 3 open ?`) and ask whether they want it. If they chose "every session" in step 1b, offer it everywhere: `wowchar install-statusline --user` (writes `~/.claude/settings.json`). Otherwise put it in the notes folder only: `wowchar install-statusline`. If it reports an existing status line, show it and offer `install-statusline --chain` (keeps theirs, appends ours).
+Show an example (`Brightmane 28 Druid · iLvl 24 · next: Travel Form @30 · 3 open ?`) and ask whether they want it. Put it in the notes folder only: `wowchar install-statusline`. Use `--user` (writes `~/.claude/settings.json`) only if the user asks for it in every folder. If it reports an existing status line, show it and offer `install-statusline --chain` (keeps theirs, appends ours).
 
 ## 11. Optional extras (one quick free-text question, skippable)
 "Any addons you use (Questie, DBM, Details…) or anything else I should know?" → `profile set addons=Questie,DBM`.

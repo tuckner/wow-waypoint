@@ -93,6 +93,19 @@ class TestHome(Workspace):
         self.assertEqual(core.read_pointer()["announce"], "home")
 
 
+    def test_default_scope_is_notes_folder_only_unless_session_opts_in(self):
+        home = self.ws / "wow-notes"
+        (home / "notes" / "characters").mkdir(parents=True)
+        (home / "notes" / "characters" / "characters.json").write_text("[]")
+        core.write_pointer(home=str(home))  # no announce chosen
+        self.assertEqual(core.announce_mode(), "home")
+        core.set_root(home)
+        core.write_text(core.BASE / ".sessions.json", json.dumps(["opted"]) + "\n")
+        self.assertTrue(core.session_opted_in("opted"))
+        self.assertFalse(core.session_opted_in("other"))
+        self.assertFalse(core.session_opted_in(None))
+
+
 # ---------- 1. doctor / parsing ----------
 
 class TestParse(unittest.TestCase):

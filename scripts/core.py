@@ -24,7 +24,7 @@ LIST_FIELDS = {"playstyle", "goals", "addons", "roles"}
 
 ROOT = BASE = CONFIG = None
 SOURCE = None  # how ROOT was found: env, local, home, project or cwd
-ANNOUNCE = ("everywhere", "home")  # where the session hook speaks up
+ANNOUNCE = ("everywhere", "home")  # where the session hook speaks up; "home" (notes folder only) is the default
 
 
 def pointer_path():
@@ -76,6 +76,22 @@ def session_in_home():
     """True when this session was started inside the notes folder."""
     here = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path.cwd()).resolve()
     return here == ROOT or ROOT in here.parents
+
+
+def announce_mode():
+    """Where the session hook speaks up: 'home' (default, notes folder only) unless the user chose 'everywhere'."""
+    m = read_pointer().get("announce")
+    return m if m in ANNOUNCE else "home"
+
+
+def opted_in_sessions():
+    d = read_json(BASE / ".sessions.json", None) if BASE else None
+    return d if isinstance(d, list) else []
+
+
+def session_opted_in(session_id):
+    """True when the user turned WoW on for this one session outside the notes folder (`session on`)."""
+    return bool(session_id) and session_id in opted_in_sessions()
 
 
 def set_root(path):
