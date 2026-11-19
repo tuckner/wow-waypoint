@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.5.0...wow-waypoint-v0.6.0) (2026-11-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* the /wow-* skill names are gone; use /wow-waypoint:<name>. Workspaces that symlinked skills into .claude/skills should load the plugin instead (claude --plugin-dir /path/to/wow-waypoint) and drop any hand-added SessionStart hook.
+
+### Features
+
+* drop the wow- prefix from skill names; plugin skills are /wow-waypoint:init, /wow-waypoint:plan, ... ([4af54bf](https://github.com/tuckner/wow-waypoint/commit/4af54bf8618b084941c18593aa57aae4829c521e))
+
 ## [0.5.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.4.0...wow-waypoint-v0.5.0) (2026-11-19)
 
 
