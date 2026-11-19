@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.4.0...wow-waypoint-v0.5.0) (2026-11-19)
+
+
+### Features
+
+* `add` accepts a wowf.io profile link; init asks for the link when a name can't be fetched ([cc5ee0c](https://github.com/tuckner/wow-waypoint/commit/cc5ee0c4288fb01854966a1278668a63903bc4c7))
+* **dashboard:** average item level over time atop the Gear page; fix leveling chart starts, overlapping flags and cut-off projection ([f64ef7a](https://github.com/tuckner/wow-waypoint/commit/f64ef7a918ce0832ba13c074f59d87ba617adc38))
+* **init:** character names are a required question in the first setup form, never asked in chat ([cc5ee0c](https://github.com/tuckner/wow-waypoint/commit/cc5ee0c4288fb01854966a1278668a63903bc4c7))
+* **init:** WoW context only in the notes folder by default; names asked in the setup form ([cc5ee0c](https://github.com/tuckner/wow-waypoint/commit/cc5ee0c4288fb01854966a1278668a63903bc4c7))
+* item level tracks your best gear set, not just what you logged out in ([ce25d94](https://github.com/tuckner/wow-waypoint/commit/ce25d9466a3c11a0b8cb8dabef7ae4664a44af61))
+
+
+### Bug Fixes
+
+* session start no longer injects a 'last time' recap; open questions stay as background ([2e52bf7](https://github.com/tuckner/wow-waypoint/commit/2e52bf7ca1b01f4d363617fec0b43f2da6a12d79))
+
 ## [0.4.0](https://github.com/tuckner/wow-waypoint/compare/wow-waypoint-v0.3.0...wow-waypoint-v0.4.0) (2026-11-19)
 
 
